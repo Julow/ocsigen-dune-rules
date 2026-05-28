@@ -5,7 +5,7 @@
  (wrapped false)
  (preprocess
   (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw))
- (libraries eliom.server js_of_ocaml))
+ (libraries eliom.server))
 
 (subdir
  client

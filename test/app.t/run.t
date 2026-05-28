@@ -5,3 +5,5 @@
   _build/default/app/my_app.bc
 
   $ dune runtest
+
+  $ diff <(ocsigen-dune-rules init-library my_lib) lib/dune
