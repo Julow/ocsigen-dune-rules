@@ -2,18 +2,13 @@ open Cmdliner
 
 module Gen = struct
   let run internal_prefix subdir server_objs_dir dir =
-    (match internal_prefix with
-    | Some p -> Gen_rules.extra_ppx_args := [ "-internal-prefix"; p ]
-    | None -> ());
-    (match subdir with
-    | Some s -> Gen_rules.subdir_name := s
-    | None -> ());
-    (match server_objs_dir with
-    | Some d -> Gen_rules.server_objs_dir := d
-    | None -> ());
+    let extra_ppx_args =
+      Option.map (fun p -> [ "-internal-prefix"; p ]) internal_prefix
+    in
     let files = Utils.list_dir dir in
     let files = List.filter (Fun.negate Utils.is_dir) files in
-    Gen_rules.run files
+    Gen_rules.run ?extra_ppx_args ?subdir_name:subdir
+      ?server_objs_dir files
 
   let arg_dir =
     let doc = "Directory containing the Eliom modules." in

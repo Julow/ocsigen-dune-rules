@@ -1,28 +1,10 @@
 let pf = Printf.printf
 let spf = Printf.sprintf
 
-(** Extra arguments to pass to [ocsigen-ppx-client] for every rule.
-    Currently used by [--internal-prefix]. *)
-let extra_ppx_args = ref []
-
-(** When non-empty, wrap generated rules in a [(subdir DIR ...)] stanza
-    so the preprocessed files land in [DIR/].  Used together with
-    [(include_subdirs qualified)]. *)
-let subdir_name = ref ""
-
-(** When non-empty, emit explicit [%{dep:DIR/<prefix>__<Name>.cmo}]
-    paths for [-server-cmo] instead of the [%{cmo:Name}] dune
-    variable.  Needed when the client lib has a sister module of the
-    same name as the server, in which case [%{cmo:Name}] resolves to
-    the local (client) [.cmo] rather than the server's. *)
-let server_objs_dir = ref ""
-
-let gen_eliom_ppx_rule ~target ~input ~args =
+let gen_eliom_ppx_rule ~subdir_name ~target ~input ~args =
   (* The [chdir] instruction is needed to obtain the correct path for
      [-loc-filename] to be used in error messages. *)
-  let all_args = !extra_ppx_args @ args in
-  if !subdir_name <> ""
-  then
+  if subdir_name <> "" then
     pf
       {|(subdir %s
  (rule
@@ -30,8 +12,8 @@ let gen_eliom_ppx_rule ~target ~input ~args =
    (chdir %%{workspace_root}
     (run ocsigen-ppx-client -as-pp -loc-filename %%{dep:%s} %s %%{dep:%s})))))
 |}
-      !subdir_name (Filename.basename target) input
-      (String.concat " " all_args)
+      subdir_name target input
+      (String.concat " " args)
       input
   else
     pf
@@ -40,61 +22,76 @@ let gen_eliom_ppx_rule ~target ~input ~args =
   (chdir %%{workspace_root}
    (run ocsigen-ppx-client -as-pp -loc-filename %%{dep:%s} %s %%{dep:%s}))))
 |}
-      target input (String.concat " " all_args) input
+      target input
+      (String.concat " " args)
+      input
 
 (** Compute the [-server-cmo] argument for a given module file.
 
-    Default: rely on the [%{cmo:...}] dune variable to find the server
-    [.cmo] in the current library.
+    Default: rely on the [%{cmo:...}] dune variable to find the server [.cmo] in
+    the current library.
 
-    With [--server-objs-dir DIR]: build an explicit [%{dep:...}] path
-    pointing at [DIR/<prefix>__<Name>.cmo], where [<prefix>__] is
-    derived from [--subdir] (the lowercase of the subdir name plus
-    [__], to match dune's own wrapping convention).  This avoids the
-    ambiguity of [%{cmo:Name}] when client and server libs both have a
-    [Name] module. *)
-let server_cmo_arg ~server_rel_prefix ~fname_no_ext =
-  if !server_objs_dir <> ""
-  then
+    With [--server-objs-dir DIR]: build an explicit [%{dep:...}] path pointing
+    at [DIR/<prefix>__<Name>.cmo], where [<prefix>__] is derived from [--subdir]
+    (the lowercase of the subdir name plus [__], to match dune's own wrapping
+    convention). This avoids the ambiguity of [%{cmo:Name}] when client and
+    server libs both have a [Name] module. *)
+let server_cmo_arg ~subdir_name ~server_objs_dir ~server_rel_prefix
+    ~fname_no_ext =
+  if server_objs_dir <> "" then
     let module_base = Filename.basename fname_no_ext in
     let cap_name = String.capitalize_ascii module_base in
-    let prefix =
-      if !subdir_name <> ""
-      then String.lowercase_ascii !subdir_name ^ "__"
-      else ""
-    in
     let cmo_from_dune_dir =
-      spf "%s/%s%s.cmo" !server_objs_dir prefix cap_name
+      let prefix =
+        if subdir_name <> "" then String.lowercase_ascii subdir_name ^ "__"
+        else ""
+      in
+      spf "%s/%s%s.cmo" server_objs_dir prefix cap_name
     in
     let cmo_path =
-      if !subdir_name <> "" then spf "../%s" cmo_from_dune_dir else cmo_from_dune_dir
+      if subdir_name <> "" then spf "../%s" cmo_from_dune_dir
+      else cmo_from_dune_dir
     in
     spf "%%{dep:%s}" cmo_path
   else
     let server_cmo = Filename.concat server_rel_prefix fname_no_ext in
     spf "%%{cmo:%s}" server_cmo
 
-let gen_rule_for_module ~server_rel_prefix ~impl fname =
+let gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
+    ~server_rel_prefix ~impl fname =
   let target = Filename.basename fname in
   let fname_no_ext = Filename.remove_extension fname in
   let input = Filename.concat server_rel_prefix fname in
   if Filename.extension fname_no_ext = ".pp" then ()
   else
     let args =
+      extra_ppx_args
+      @
       if impl then
-        let server_cmo = server_cmo_arg ~server_rel_prefix ~fname_no_ext in
+        let server_cmo =
+          server_cmo_arg ~subdir_name ~server_objs_dir ~server_rel_prefix
+            ~fname_no_ext
+        in
         [ "--impl"; "-server-cmo"; server_cmo ]
       else [ "--intf" ]
     in
-    gen_eliom_ppx_rule ~target ~input ~args
+    gen_eliom_ppx_rule ~subdir_name ~target ~input ~args
 
 (** Relative path to server modules from the generated client modules. *)
 let server_rel_prefix = ".."
 
-let gen_rule_for_file fname =
+let gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir fname =
   match Filename.extension fname with
-  | ".eliom" -> gen_rule_for_module ~server_rel_prefix ~impl:true fname
-  | ".eliomi" -> gen_rule_for_module ~server_rel_prefix ~impl:false fname
+  | ".eliom" ->
+      gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
+        ~server_rel_prefix ~impl:true fname
+  | ".eliomi" ->
+      gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
+        ~server_rel_prefix ~impl:false fname
   | _ -> ()
 
-let run files = List.iter gen_rule_for_file files
+let run ?(extra_ppx_args = []) ?(subdir_name = "") ?(server_objs_dir = "") files
+    =
+  List.iter
+    (gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir)
+    files
