@@ -1,3 +1,22 @@
+;
+; This Dune file was generated using ocsigen-dune-rules.
+; To update it, modify the invocation below and run 'dune runtest --auto-promote'.
+;
+
+(rule
+ (with-stdout-to
+  dune.corrected
+  (run ocsigen-dune-rules init-library my_lib)))
+
+;
+; Below this line, any changes will be overwritten.
+;
+
+(rule
+ (alias runtest)
+ (action
+  (diff dune dune.corrected)))
+
 (library
  (public_name my_lib.server)
  (name my_lib)
