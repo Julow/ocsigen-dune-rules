@@ -7,8 +7,7 @@ module Gen = struct
     in
     let files = Utils.list_dir dir in
     let files = List.filter (Fun.negate Utils.is_dir) files in
-    Gen_rules.run ?extra_ppx_args ?subdir_name:subdir
-      ?server_objs_dir files
+    Gen_rules.run ?extra_ppx_args ?subdir_name:subdir ?server_objs_dir files
 
   let arg_dir =
     let doc = "Directory containing the Eliom modules." in
@@ -17,11 +16,11 @@ module Gen = struct
   let arg_internal_prefix =
     let doc =
       "Pass [-internal-prefix $(docv)] to ocsigen-ppx-client.  Tells the \
-       client PPX to strip the [$(docv)__] wrapper prefix from the type \
-       paths it reads in the server [.cmo] files, so that the generated \
-       client code references the user-visible names instead of the \
-       internal ones.  Required when compiling a wrapped library whose \
-       [%client] blocks refer to its own modules (e.g. ocsigen-start)."
+       client PPX to strip the [$(docv)__] wrapper prefix from the type paths \
+       it reads in the server [.cmo] files, so that the generated client code \
+       references the user-visible names instead of the internal ones.  \
+       Required when compiling a wrapped library whose [%client] blocks refer \
+       to its own modules (e.g. ocsigen-start)."
     in
     Arg.(
       value
@@ -32,21 +31,20 @@ module Gen = struct
     let doc =
       "Wrap the generated rules in a [(subdir $(docv) ...)] stanza so the \
        preprocessed files land in [$(docv)/].  Used together with \
-       [(include_subdirs qualified)] to expose the modules under a \
-       [$(docv).] namespace."
+       [(include_subdirs qualified)] to expose the modules under a [$(docv).] \
+       namespace."
     in
     Arg.(value & opt (some string) None & info ~doc ~docv:"DIR" [ "subdir" ])
 
   let arg_server_objs_dir =
     let doc =
-      "Path to the server library's [.objs/byte/] directory, relative to \
-       the dune file containing the generated rules.  When set, emit \
-       explicit [%{dep:$(docv)/<prefix>__<Name>.cmo}] paths for \
-       [-server-cmo] instead of the [%{cmo:Name}] dune variable.  Needed \
-       when the client lib has a sister module of the same name as the \
-       server, in which case [%{cmo:Name}] resolves to the local (client) \
-       [.cmo] rather than the server's.  The [<prefix>__] is derived from \
-       [--subdir]."
+      "Path to the server library's [.objs/byte/] directory, relative to the \
+       dune file containing the generated rules.  When set, emit explicit \
+       [%{dep:$(docv)/<prefix>__<Name>.cmo}] paths for [-server-cmo] instead \
+       of the [%{cmo:Name}] dune variable.  Needed when the client lib has a \
+       sister module of the same name as the server, in which case \
+       [%{cmo:Name}] resolves to the local (client) [.cmo] rather than the \
+       server's.  The [<prefix>__] is derived from [--subdir]."
     in
     Arg.(
       value
@@ -56,10 +54,7 @@ module Gen = struct
   let cmd =
     let term =
       Term.(
-        const run
-        $ arg_internal_prefix
-        $ arg_subdir
-        $ arg_server_objs_dir
+        const run $ arg_internal_prefix $ arg_subdir $ arg_server_objs_dir
         $ arg_dir)
     in
     let doc = "Generate dune rules to stdout." in
