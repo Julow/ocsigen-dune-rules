@@ -6,7 +6,9 @@ let promote_rule () =
     cmt
       {|
  This Dune file was generated with ocsigen-dune-rules.
- To update it, modify the invocation below and run 'dune runtest --auto-promote'.
+ To update it, modify the invocation below and run
+
+     dune runtest --auto-promote
 |};
     field "rule"
       [
@@ -17,7 +19,7 @@ let promote_rule () =
           ];
       ];
     cmt {|
- Below this line, any change will be overwritten.
+ Below this line, any changes will be overwritten.
 |};
     field "rule"
       [

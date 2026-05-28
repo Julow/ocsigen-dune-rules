@@ -1,12 +1,14 @@
 ;
-; This Dune file was generated using ocsigen-dune-rules.
-; To update it, modify the invocation below and run 'dune runtest --auto-promote'.
+; This Dune file was generated with ocsigen-dune-rules.
+; To update it, modify the invocation below and run
+;
+;     dune runtest --auto-promote
 ;
 
 (rule
  (with-stdout-to
   dune.corrected
-  (run ocsigen-dune-rules init-library my_lib)))
+  (run ocsigen-dune-rules gen-library my_lib)))
 
 ;
 ; Below this line, any changes will be overwritten.

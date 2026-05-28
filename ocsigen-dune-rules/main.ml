@@ -63,9 +63,9 @@ module Gen_client_modules = struct
     Cmd.v info term
 end
 
-module Init_library = struct
+module Gen_library = struct
   let run libraries_server libraries_client libraries name =
-    Init_library.run ~libraries_server ~libraries_client ~libraries ~name
+    Gen_library.run ~libraries_server ~libraries_client ~libraries ~name
 
   let arg_name =
     let doc = "Name of the Eliom library." in
@@ -102,7 +102,7 @@ module Init_library = struct
       "Generate Dune stanzas for defining an Eliom library. The libraries are \
        named NAME.server and NAME.client."
     in
-    let info = Cmd.info "init-library" ~doc in
+    let info = Cmd.info "gen-library" ~doc in
     Cmd.v info term
 end
 
@@ -144,6 +144,6 @@ let cmd =
     "Generate dune rules for building an ocsigen application or library."
   in
   let info = Cmd.info "ocsigen-dune-rules" ~version:"%%VERSION%%" ~doc in
-  Cmd.group info [ Init_library.cmd; Gen_client_modules.cmd; Check_modules.cmd ]
+  Cmd.group info [ Gen_library.cmd; Gen_client_modules.cmd; Check_modules.cmd ]
 
 let () = exit (Cmd.eval cmd)

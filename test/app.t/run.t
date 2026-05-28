@@ -6,4 +6,4 @@
 
   $ dune runtest
 
-  $ diff <(ocsigen-dune-rules init-library my_lib) lib/dune
+  $ diff <(ocsigen-dune-rules gen-library my_lib) lib/dune
