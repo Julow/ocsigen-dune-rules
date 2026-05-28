@@ -1,38 +1,105 @@
-let pf = Printf.printf
 let spf = Printf.sprintf
+let dep f = spf "%%{dep:%s}" f
 
 let gen_eliom_ppx_rule ~target ~input ~args =
   (* The [chdir] instruction is needed to obtain the correct path for
      [-loc-filename] to be used in error messages. *)
-  pf
-    {|(rule
- (with-stdout-to %s
-  (chdir %%{workspace_root}
-   (run ocsigen-ppx-client -as-pp -loc-filename %%{dep:%s} %s %%{dep:%s}))))
-|}
-    target input (String.concat " " args) input
+  Sexpgen.
+    [
+      field "rule"
+        [
+          field "with-stdout-to"
+            [
+              atomf "%s" target;
+              field "chdir"
+                [
+                  atom "%{workspace_root}";
+                  field "run"
+                    (atoms
+                       [
+                         "ocsigen-ppx-client";
+                         "-as-pp";
+                         "-loc-filename";
+                         dep input;
+                       ]
+                    @ atoms args
+                    @ atoms [ dep input ]);
+                ];
+            ];
+        ];
+    ]
 
-let gen_rule_for_module ~server_rel_prefix ~impl fname =
+let with_subdir_opt ~subdir_name rules =
+  if subdir_name = "" then rules
+  else Sexpgen.[ field "subdir" (atom subdir_name :: rules) ]
+
+(** Compute the [-server-cmo] argument for a given module file.
+
+    Default: rely on the [%{cmo:...}] dune variable to find the server [.cmo] in
+    the current library.
+
+    With [--server-objs-dir DIR]: build an explicit [%{dep:...}] path pointing
+    at [DIR/<prefix>__<Name>.cmo], where [<prefix>__] is derived from [--subdir]
+    (the lowercase of the subdir name plus [__], to match dune's own wrapping
+    convention). This avoids the ambiguity of [%{cmo:Name}] when client and
+    server libs both have a [Name] module. *)
+let server_cmo_arg ~subdir_name ~server_objs_dir ~server_rel_prefix
+    ~fname_no_ext =
+  if server_objs_dir <> "" then
+    let module_base = Filename.basename fname_no_ext in
+    let cap_name = String.capitalize_ascii module_base in
+    let cmo_from_dune_dir =
+      let prefix =
+        if subdir_name <> "" then String.lowercase_ascii subdir_name ^ "__"
+        else ""
+      in
+      spf "%s/%s%s.cmo" server_objs_dir prefix cap_name
+    in
+    let cmo_path =
+      if subdir_name <> "" then spf "../%s" cmo_from_dune_dir
+      else cmo_from_dune_dir
+    in
+    spf "%%{dep:%s}" cmo_path
+  else
+    let server_cmo = Filename.concat server_rel_prefix fname_no_ext in
+    spf "%%{cmo:%s}" server_cmo
+
+let gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
+    ~server_rel_prefix ~impl fname =
   let target = Filename.basename fname in
   let fname_no_ext = Filename.remove_extension fname in
   let input = Filename.concat server_rel_prefix fname in
-  if Filename.extension fname_no_ext = ".pp" then ()
+  if Filename.extension fname_no_ext = ".pp" then []
   else
     let args =
+      extra_ppx_args
+      @
       if impl then
-        let server_cmo = Filename.concat server_rel_prefix fname_no_ext in
-        [ "--impl"; "-server-cmo"; spf "%%{cmo:%s}" server_cmo ]
+        let server_cmo =
+          server_cmo_arg ~subdir_name ~server_objs_dir ~server_rel_prefix
+            ~fname_no_ext
+        in
+        [ "--impl"; "-server-cmo"; server_cmo ]
       else [ "--intf" ]
     in
-    gen_eliom_ppx_rule ~target ~input ~args
+    with_subdir_opt ~subdir_name (gen_eliom_ppx_rule ~target ~input ~args)
 
 (** Relative path to server modules from the generated client modules. *)
 let server_rel_prefix = ".."
 
-let gen_rule_for_file fname =
+let gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir fname =
   match Filename.extension fname with
-  | ".eliom" -> gen_rule_for_module ~server_rel_prefix ~impl:true fname
-  | ".eliomi" -> gen_rule_for_module ~server_rel_prefix ~impl:false fname
-  | _ -> ()
+  | ".eliom" ->
+      gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
+        ~server_rel_prefix ~impl:true fname
+  | ".eliomi" ->
+      gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
+        ~server_rel_prefix ~impl:false fname
+  | _ -> []
 
-let run files = List.iter gen_rule_for_file files
+let run ?(extra_ppx_args = []) ?(subdir_name = "") ?(server_objs_dir = "") files
+    =
+  List.concat_map
+    (gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir)
+    files
+  |> Sexpgen.pp_list Format.std_formatter
