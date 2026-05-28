@@ -1,13 +1,14 @@
 open Cmdliner
 
-module Gen = struct
+module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
     let extra_ppx_args =
       Option.map (fun p -> [ "-internal-prefix"; p ]) internal_prefix
     in
     let files = Utils.list_dir dir in
     let files = List.filter (Fun.negate Utils.is_dir) files in
-    Gen_rules.run ?extra_ppx_args ?subdir_name:subdir ?server_objs_dir files
+    Gen_client_modules.run ?extra_ppx_args ?subdir_name:subdir
+      ?server_objs_dir files
 
   let arg_dir =
     let doc = "Directory containing the Eliom modules." in
@@ -58,7 +59,7 @@ module Gen = struct
         $ arg_dir)
     in
     let doc = "Generate dune rules to stdout." in
-    let info = Cmd.info "gen" ~doc in
+    let info = Cmd.info "gen-client-modules" ~doc in
     Cmd.v info term
 end
 
@@ -100,6 +101,6 @@ let cmd =
     "Generate dune rules for building an ocsigen application or library."
   in
   let info = Cmd.info "ocsigen-dune-rules" ~version:"%%VERSION%%" ~doc in
-  Cmd.group info [ Gen.cmd; Check_modules.cmd ]
+  Cmd.group info [ Gen_client_modules.cmd; Check_modules.cmd ]
 
 let () = exit (Cmd.eval cmd)
