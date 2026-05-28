@@ -1,30 +1,37 @@
-let pf = Printf.printf
 let spf = Printf.sprintf
+let dep f = spf "%%{dep:%s}" f
 
-let gen_eliom_ppx_rule ~subdir_name ~target ~input ~args =
+let gen_eliom_ppx_rule ~target ~input ~args =
   (* The [chdir] instruction is needed to obtain the correct path for
      [-loc-filename] to be used in error messages. *)
-  if subdir_name <> "" then
-    pf
-      {|(subdir %s
- (rule
-  (with-stdout-to %s
-   (chdir %%{workspace_root}
-    (run ocsigen-ppx-client -as-pp -loc-filename %%{dep:%s} %s %%{dep:%s})))))
-|}
-      subdir_name target input
-      (String.concat " " args)
-      input
-  else
-    pf
-      {|(rule
- (with-stdout-to %s
-  (chdir %%{workspace_root}
-   (run ocsigen-ppx-client -as-pp -loc-filename %%{dep:%s} %s %%{dep:%s}))))
-|}
-      target input
-      (String.concat " " args)
-      input
+  Sexpgen.
+    [
+      field "rule"
+        [
+          field "with-stdout-to"
+            [
+              atomf "%s" target;
+              field "chdir"
+                [
+                  atom "%{workspace_root}";
+                  field "run"
+                    (atoms
+                       [
+                         "ocsigen-ppx-client";
+                         "-as-pp";
+                         "-loc-filename";
+                         dep input;
+                       ]
+                    @ atoms args
+                    @ atoms [ dep input ]);
+                ];
+            ];
+        ];
+    ]
+
+let with_subdir_opt ~subdir_name rules =
+  if subdir_name = "" then rules
+  else Sexpgen.[ field "subdir" (atom subdir_name :: rules) ]
 
 (** Compute the [-server-cmo] argument for a given module file.
 
@@ -62,7 +69,7 @@ let gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
   let target = Filename.basename fname in
   let fname_no_ext = Filename.remove_extension fname in
   let input = Filename.concat server_rel_prefix fname in
-  if Filename.extension fname_no_ext = ".pp" then ()
+  if Filename.extension fname_no_ext = ".pp" then []
   else
     let args =
       extra_ppx_args
@@ -75,7 +82,7 @@ let gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
         [ "--impl"; "-server-cmo"; server_cmo ]
       else [ "--intf" ]
     in
-    gen_eliom_ppx_rule ~subdir_name ~target ~input ~args
+    with_subdir_opt ~subdir_name (gen_eliom_ppx_rule ~target ~input ~args)
 
 (** Relative path to server modules from the generated client modules. *)
 let server_rel_prefix = ".."
@@ -88,10 +95,11 @@ let gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir fname =
   | ".eliomi" ->
       gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
         ~server_rel_prefix ~impl:false fname
-  | _ -> ()
+  | _ -> []
 
 let run ?(extra_ppx_args = []) ?(subdir_name = "") ?(server_objs_dir = "") files
     =
-  List.iter
+  List.concat_map
     (gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir)
     files
+  |> Sexpgen.pp_list Format.std_formatter
