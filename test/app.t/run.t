@@ -6,5 +6,5 @@
 
   $ dune runtest
 
-  $ ocsigen-dune-rules gen-library --public-name my_lib my_lib > lib/dune.gen
+  $ ocsigen-dune-rules gen-library my_lib > lib/dune.gen
   $ diff lib/dune.gen lib/dune
