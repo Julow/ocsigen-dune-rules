@@ -106,6 +106,49 @@ module Gen_library = struct
     Cmd.v info term
 end
 
+module Gen_application = struct
+  let run libraries_server libraries_client libraries name =
+    Gen_application.run ~libraries_server ~libraries_client ~libraries ~name
+
+  let arg_name =
+    let doc = "Name of the Eliom application." in
+    Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
+
+  let arg_server_libraries =
+    let doc = "Comma-separated list of libraries used on the server-side." in
+    Arg.(
+      value
+      & opt (list string) []
+      & info ~doc ~docv:"LIB1,LIB2,..." [ "server-libraries" ])
+
+  let arg_client_libraries =
+    let doc = "Comma-separated list of libraries used on the client-side." in
+    Arg.(
+      value
+      & opt (list string) []
+      & info ~doc ~docv:"LIB1,LIB2,..." [ "client-libraries" ])
+
+  let arg_libraries =
+    let doc = "Comma-separated list of libraries used on the both sides." in
+    Arg.(
+      value
+      & opt (list string) []
+      & info ~doc ~docv:"LIB1,LIB2,..." [ "libraries" ])
+
+  let cmd =
+    let term =
+      Term.(
+        const run $ arg_server_libraries $ arg_client_libraries $ arg_libraries
+        $ arg_name)
+    in
+    let doc =
+      "Generate Dune stanzas for defining an Eliom application. The executable \
+       is named NAME and is registered in package NAME."
+    in
+    let info = Cmd.info "gen-application" ~doc in
+    Cmd.v info term
+end
+
 module Check_modules = struct
   let run server_bytecode client_bytecode =
     Check_modules.run ~server_bytecode ~client_bytecode
@@ -144,6 +187,12 @@ let cmd =
     "Generate dune rules for building an ocsigen application or library."
   in
   let info = Cmd.info "ocsigen-dune-rules" ~version:"%%VERSION%%" ~doc in
-  Cmd.group info [ Gen_library.cmd; Gen_client_modules.cmd; Check_modules.cmd ]
+  Cmd.group info
+    [
+      Gen_application.cmd;
+      Gen_library.cmd;
+      Gen_client_modules.cmd;
+      Check_modules.cmd;
+    ]
 
 let () = exit (Cmd.eval cmd)
