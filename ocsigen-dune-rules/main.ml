@@ -16,10 +16,21 @@ let libraries_term =
     let doc = "Libraries used on both sides (comma-separated list)." in
     Arg.(value & opt (list string) [] & info ~doc ~docv [ "libraries" ])
   in
+  let arg_eliom =
+    let doc =
+      "Eliom libraries used on both sides (comma-separated list). Use this for \
+       libraries that compiles to LIB.client and LIB.server."
+    in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "eliom-libraries" ])
+  in
   Term.(
-    const (fun server client both ->
-        { Gen_utils.server = server @ both; client = client @ both })
-    $ arg_server $ arg_client $ arg_both)
+    const (fun server client both eliom ->
+        let eliom suffix = List.map (fun l -> l ^ suffix) eliom in
+        {
+          Gen_utils.server = server @ both @ eliom ".server";
+          client = client @ both @ eliom ".client";
+        })
+    $ arg_server $ arg_client $ arg_both $ arg_eliom)
 
 module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
