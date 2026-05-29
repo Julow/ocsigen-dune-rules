@@ -41,7 +41,7 @@ Place it in a directory containing `*.eliom` files.
  (action
   (with-stdout-to
    dune.client
-   (run ocsigen-dune-rules gen .))))
+   (run ocsigen-dune-rules gen-client-modules .))))
 
 (rule
  (alias runtest)

@@ -2,7 +2,7 @@ Default invocation: emit one rule per .eliom/.eliomi, using
 %{cmo:...} to locate the server-side .cmo and %{dep:...} for the
 input file.
 
-  $ ocsigen-dune-rules gen .
+  $ ocsigen-dune-rules gen-client-modules .
   (rule
    (with-stdout-to
     a.eliom
@@ -50,7 +50,7 @@ input file.
 ocsigen-ppx-client.  The PREFIX is inserted before the existing
 arguments of every rule.
 
-  $ ocsigen-dune-rules gen --internal-prefix Os .
+  $ ocsigen-dune-rules gen-client-modules --internal-prefix Os .
   (rule
    (with-stdout-to
     a.eliom
@@ -105,7 +105,7 @@ so the preprocessed files land in DIR/.  The input paths still refer
 to the original location relative to the workspace root, thanks to
 the chdir wrapper.
 
-  $ ocsigen-dune-rules gen --subdir Os .
+  $ ocsigen-dune-rules gen-client-modules --subdir Os .
   (subdir
    Os
    (rule
@@ -159,7 +159,7 @@ the chdir wrapper.
 %{dep:DIR/Name.cmo} path so the server-side .cmo is located
 unambiguously.  When used without --subdir the path has no prefix:
 
-  $ ocsigen-dune-rules gen --server-objs-dir ../.foo.objs/byte .
+  $ ocsigen-dune-rules gen-client-modules --server-objs-dir ../.foo.objs/byte .
   (rule
    (with-stdout-to
     a.eliom
@@ -209,7 +209,7 @@ wrapping convention (e.g. --subdir Os yields os__Name.cmo).  The
 generated path is also prefixed with ../ to escape the (subdir ...)
 context.
 
-  $ ocsigen-dune-rules gen --subdir Os --server-objs-dir .foo.objs/byte .
+  $ ocsigen-dune-rules gen-client-modules --subdir Os --server-objs-dir .foo.objs/byte .
   (subdir
    Os
    (rule
