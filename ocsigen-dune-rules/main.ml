@@ -1,5 +1,37 @@
 open Cmdliner
 
+let s_internal_commands = "INTERNAL COMMANDS"
+
+let libraries_term =
+  let docv = "LIB1,LIB2,..." in
+  let arg_server =
+    let doc = "Server-side libraries (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "server-libraries" ])
+  in
+  let arg_client =
+    let doc = "Client-side libraries (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "client-libraries" ])
+  in
+  let arg_both =
+    let doc = "Libraries used on both sides (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "libraries" ])
+  in
+  let arg_eliom =
+    let doc =
+      "Eliom libraries used on both sides (comma-separated list). Use this for \
+       libraries that compiles to LIB.client and LIB.server."
+    in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "eliom-libraries" ])
+  in
+  Term.(
+    const (fun server client both eliom ->
+        let eliom suffix = List.map (fun l -> l ^ suffix) eliom in
+        {
+          Gen_utils.server = server @ both @ eliom ".server";
+          client = client @ both @ eliom ".client";
+        })
+    $ arg_server $ arg_client $ arg_both $ arg_eliom)
+
 module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
     let extra_ppx_args =
@@ -59,50 +91,42 @@ module Gen_client_modules = struct
         $ arg_dir)
     in
     let doc = "Generate dune rules to stdout." in
-    let info = Cmd.info "gen-client-modules" ~doc in
+    let info = Cmd.info "gen-client-modules" ~doc ~docs:s_internal_commands in
     Cmd.v info term
 end
 
 module Gen_library = struct
-  let run libraries_server libraries_client libraries name =
-    Gen_library.run ~libraries_server ~libraries_client ~libraries ~name
+  let run libraries name = Gen_library.run ~libraries ~name
 
   let arg_name =
     let doc = "Name of the Eliom library." in
     Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
 
-  let arg_server_libraries =
-    let doc = "Comma-separated list of libraries used on the server-side." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "server-libraries" ])
-
-  let arg_client_libraries =
-    let doc = "Comma-separated list of libraries used on the client-side." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "client-libraries" ])
-
-  let arg_libraries =
-    let doc = "Comma-separated list of libraries used on the both sides." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "libraries" ])
-
   let cmd =
-    let term =
-      Term.(
-        const run $ arg_server_libraries $ arg_client_libraries $ arg_libraries
-        $ arg_name)
-    in
+    let term = Term.(const run $ libraries_term $ arg_name) in
     let doc =
-      "Generate Dune stanzas for defining an Eliom library. The libraries are \
-       named NAME.server and NAME.client."
+      "Generate Dune stanzas for a client/server Eliom library. The libraries \
+       are named $(b,NAME).client and $(b,NAME).server."
     in
     let info = Cmd.info "gen-library" ~doc in
+    Cmd.v info term
+end
+
+module Gen_application = struct
+  let run libraries name = Gen_application.run ~libraries ~name
+
+  let arg_name =
+    let doc = "Name of the Eliom application." in
+    Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
+
+  let cmd =
+    let term = Term.(const run $ libraries_term $ arg_name) in
+    let doc =
+      "Generate Dune stanzas for an Eliom application. The server side is \
+       compiled to $(b,NAME).exe and the client side to \
+       client/$(b,NAME).bc.js."
+    in
+    let info = Cmd.info "gen-application" ~doc in
     Cmd.v info term
 end
 
@@ -135,7 +159,7 @@ module Check_modules = struct
     let doc =
       "Check whether the client and server libraries contain the same modules."
     in
-    let info = Cmd.info "check-modules" ~doc in
+    let info = Cmd.info "check-modules" ~doc ~docs:s_internal_commands in
     Cmd.v info term
 end
 
@@ -143,7 +167,22 @@ let cmd =
   let doc =
     "Generate dune rules for building an ocsigen application or library."
   in
-  let info = Cmd.info "ocsigen-dune-rules" ~version:"%%VERSION%%" ~doc in
-  Cmd.group info [ Gen_library.cmd; Gen_client_modules.cmd; Check_modules.cmd ]
+  let man =
+    [
+      `S Manpage.s_commands;
+      `S s_internal_commands;
+      `P
+        "Commands invoked by generated dune rules. They are not usually run \
+         directly.";
+    ]
+  in
+  let info = Cmd.info "ocsigen-dune-rules" ~version:"%%VERSION%%" ~doc ~man in
+  Cmd.group info
+    [
+      Gen_application.cmd;
+      Gen_library.cmd;
+      Gen_client_modules.cmd;
+      Check_modules.cmd;
+    ]
 
 let () = exit (Cmd.eval cmd)

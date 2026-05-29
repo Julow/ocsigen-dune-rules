@@ -6,4 +6,5 @@
 
   $ dune runtest
 
-  $ diff <(ocsigen-dune-rules gen-library my_lib) lib/dune
+  $ ocsigen-dune-rules gen-library my_lib > lib/dune.gen
+  $ diff lib/dune.gen lib/dune
