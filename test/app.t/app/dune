@@ -47,7 +47,7 @@
   (name my_app)
   (modes js byte)
   (preprocess
-   (pps eliom.ppx.client js_of_ocaml-ppx))
+   (pps js_of_ocaml-ppx))
   (js_of_ocaml
    (build_runtime_flags :standard --enable use-js-string)
    (flags :standard --enable with-js-error --enable use-js-string))

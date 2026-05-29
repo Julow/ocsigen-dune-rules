@@ -28,9 +28,7 @@ let client_executable_stanza ~name ~libraries ~preprocess =
       field "preprocess"
         [
           field "pps"
-            (atoms
-               ("eliom.ppx.client" :: "js_of_ocaml-ppx"
-              :: preprocess.Gen_utils.pps_client));
+            (atoms ("js_of_ocaml-ppx" :: preprocess.Gen_utils.pps_client));
         ];
       field "js_of_ocaml"
         [

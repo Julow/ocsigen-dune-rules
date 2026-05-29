@@ -61,7 +61,7 @@
     (library_flags
      (:standard -linkall))
     (preprocess
-     (pps eliom.ppx.client js_of_ocaml-ppx p2 p3))
+     (pps js_of_ocaml-ppx p2 p3))
     (libraries eliom.client js_of_ocaml js_of_ocaml-lwt b c))
    (dynamic_include ../dune.client))
   
