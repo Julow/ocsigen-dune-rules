@@ -35,7 +35,6 @@
     (diff dune dune.corrected)))
   
   (library
-   (public_name my_lib.server)
    (name my_lib)
    (modes byte native)
    (wrapped false)
@@ -46,7 +45,6 @@
   (subdir
    client
    (library
-    (public_name my_lib.client)
     (name my_lib)
     (modes byte)
     (wrapped false)

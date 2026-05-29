@@ -96,14 +96,24 @@ module Gen_client_modules = struct
 end
 
 module Gen_library = struct
-  let run libraries name = Gen_library.run ~libraries ~name
-
   let arg_name =
     let doc = "Name of the Eliom library." in
     Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
 
+  let opt_public_name =
+    let doc =
+      "Add a (public_name) field to the libraries. Will be suffixed with \
+       .client and .server."
+    in
+    Arg.(
+      value
+      & opt (some string) None
+      & info ~doc ~docv:"PUBLIC_NAME" [ "public-name" ])
+
   let cmd =
-    let term = Term.(const run $ libraries_term $ arg_name) in
+    let term =
+      Term.(const Gen_library.run $ opt_public_name $ libraries_term $ arg_name)
+    in
     let doc =
       "Generate Dune stanzas for a client/server Eliom library. The libraries \
        are named $(b,NAME).client and $(b,NAME).server."

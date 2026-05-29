@@ -1,41 +1,45 @@
 open Sexpgen
 
-let server_library_stanza ~name ~libraries =
-  field "library"
-    [
-      field "public_name" [ atomf "%s.server" name ];
-      field "name" [ atom name ];
-      field "modes" [ atom "byte"; atom "native" ];
-      field "wrapped" [ atom "false" ];
-      field "preprocess"
-        [
-          field "pps"
-            (atoms [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "--rpc-raw" ]);
-        ];
-      field "libraries" (atoms ("eliom.server" :: libraries.Gen_utils.server));
-    ]
+let public_name_field suffix = function
+  | Some n -> [ field "public_name" [ atom (n ^ suffix) ] ]
+  | None -> []
 
-let client_library_stanza ~name ~libraries =
+let server_library_stanza ~public_name ~name ~libraries =
   field "library"
-    [
-      field "public_name" [ atomf "%s.client" name ];
-      field "name" [ atom name ];
-      field "modes" [ atom "byte" ];
-      field "wrapped" [ atom "false" ];
-      field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
-      field "preprocess"
-        [ field "pps" (atoms [ "eliom.ppx.client"; "js_of_ocaml-ppx" ]) ];
-      field "libraries"
-        (atoms
-           ("eliom.client" :: "js_of_ocaml" :: "js_of_ocaml-lwt"
-          :: libraries.Gen_utils.client));
-    ]
+    (public_name_field ".server" public_name
+    @ [
+        field "name" [ atom name ];
+        field "modes" [ atom "byte"; atom "native" ];
+        field "wrapped" [ atom "false" ];
+        field "preprocess"
+          [
+            field "pps"
+              (atoms [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "--rpc-raw" ]);
+          ];
+        field "libraries" (atoms ("eliom.server" :: libraries.Gen_utils.server));
+      ])
 
-let client_subdir_stanza ~name ~libraries =
+let client_library_stanza ~public_name ~name ~libraries =
+  field "library"
+    (public_name_field ".client" public_name
+    @ [
+        field "name" [ atom name ];
+        field "modes" [ atom "byte" ];
+        field "wrapped" [ atom "false" ];
+        field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
+        field "preprocess"
+          [ field "pps" (atoms [ "eliom.ppx.client"; "js_of_ocaml-ppx" ]) ];
+        field "libraries"
+          (atoms
+             ("eliom.client" :: "js_of_ocaml" :: "js_of_ocaml-lwt"
+            :: libraries.Gen_utils.client));
+      ])
+
+let client_subdir_stanza ~public_name ~name ~libraries =
   field "subdir"
     [
       atom "client";
-      client_library_stanza ~name ~libraries;
+      client_library_stanza ~public_name ~name ~libraries;
       field "dynamic_include" [ atom "../dune.client" ];
     ]
 
@@ -58,11 +62,11 @@ let gen_client_modules_rule () =
         ];
     ]
 
-let run ~libraries ~name =
+let run public_name libraries name =
   Gen_utils.promote_rule ()
   @ [
-      server_library_stanza ~name ~libraries;
-      client_subdir_stanza ~name ~libraries;
+      server_library_stanza ~public_name ~name ~libraries;
+      client_subdir_stanza ~public_name ~name ~libraries;
       gen_client_modules_rule ();
     ]
   |> pp_list Format.std_formatter

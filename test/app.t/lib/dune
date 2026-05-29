@@ -8,7 +8,7 @@
 (rule
  (with-stdout-to
   dune.corrected
-  (run ocsigen-dune-rules gen-library my_lib)))
+  (run ocsigen-dune-rules gen-library --public-name my_lib my_lib)))
 
 ;
 ; Below this line, any changes will be overwritten.
