@@ -1,6 +1,6 @@
 open Sexpgen
 
-let server_executable_stanza ~name ~libraries =
+let server_executable_stanza ~name ~libraries ~preprocess =
   field "executable"
     [
       field "public_name" [ atom name ];
@@ -10,21 +10,28 @@ let server_executable_stanza ~name ~libraries =
       field "preprocess"
         [
           field "pps"
-            (atoms [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "--rpc-raw" ]);
+            (atoms
+               ("eliom.ppx.server" :: "ocsigen-ppx-rpc" :: "--rpc-raw"
+              :: preprocess.Gen_utils.pps_server));
         ];
       field "libraries"
         (atoms
            ([ "eliom.server"; "ocsigenserver"; "js_of_ocaml" ]
-           @ libraries.Gen_utils.server));
+           @ libraries.Gen_utils.lib_server));
     ]
 
-let client_executable_stanza ~name ~libraries =
+let client_executable_stanza ~name ~libraries ~preprocess =
   field "executable"
     [
       field "name" [ atom name ];
       field "modes" [ atom "js"; atom "byte" ];
       field "preprocess"
-        [ field "pps" (atoms [ "eliom.ppx.client"; "js_of_ocaml-ppx" ]) ];
+        [
+          field "pps"
+            (atoms
+               ("eliom.ppx.client" :: "js_of_ocaml-ppx"
+              :: preprocess.Gen_utils.pps_client));
+        ];
       field "js_of_ocaml"
         [
           field "build_runtime_flags"
@@ -42,14 +49,14 @@ let client_executable_stanza ~name ~libraries =
       field "libraries"
         (atoms
            ([ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
-           @ libraries.Gen_utils.client));
+           @ libraries.Gen_utils.lib_client));
     ]
 
-let client_subdir_stanza ~name ~libraries =
+let client_subdir_stanza ~name ~libraries ~preprocess =
   field "subdir"
     [
       atom "client";
-      client_executable_stanza ~name ~libraries;
+      client_executable_stanza ~name ~libraries ~preprocess;
       field "dynamic_include" [ atom "../dune.client" ];
     ]
 
@@ -90,11 +97,11 @@ let check_modules_rule ~name =
         ];
     ]
 
-let run ~libraries ~name =
+let run libraries preprocess name =
   Gen_utils.promote_rule ()
   @ [
-      server_executable_stanza ~name ~libraries;
-      client_subdir_stanza ~name ~libraries;
+      server_executable_stanza ~name ~libraries ~preprocess;
+      client_subdir_stanza ~name ~libraries ~preprocess;
       gen_client_modules_rule ();
       check_modules_rule ~name;
     ]

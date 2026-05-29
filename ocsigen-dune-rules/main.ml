@@ -27,10 +27,29 @@ let libraries_term =
     const (fun server client both eliom ->
         let eliom suffix = List.map (fun l -> l ^ suffix) eliom in
         {
-          Gen_utils.server = server @ both @ eliom ".server";
-          client = client @ both @ eliom ".client";
+          Gen_utils.lib_server = server @ both @ eliom ".server";
+          lib_client = client @ both @ eliom ".client";
         })
     $ arg_server $ arg_client $ arg_both $ arg_eliom)
+
+let preprocess_term =
+  let docv = "PPX1,PPX2,..." in
+  let arg_server =
+    let doc = "Server-side PPX (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "server-preprocess" ])
+  in
+  let arg_client =
+    let doc = "Client-side PPX (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "client-preprocess" ])
+  in
+  let arg_both =
+    let doc = "PPX used on both sides (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "preprocess" ])
+  in
+  Term.(
+    const (fun server client both ->
+        { Gen_utils.pps_server = server @ both; pps_client = client @ both })
+    $ arg_server $ arg_client $ arg_both)
 
 module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
@@ -112,7 +131,9 @@ module Gen_library = struct
 
   let cmd =
     let term =
-      Term.(const Gen_library.run $ opt_public_name $ libraries_term $ arg_name)
+      Term.(
+        const Gen_library.run $ opt_public_name $ libraries_term
+        $ preprocess_term $ arg_name)
     in
     let doc =
       "Generate Dune stanzas for a client/server Eliom library. The libraries \
@@ -123,14 +144,15 @@ module Gen_library = struct
 end
 
 module Gen_application = struct
-  let run libraries name = Gen_application.run ~libraries ~name
-
   let arg_name =
     let doc = "Name of the Eliom application." in
     Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
 
   let cmd =
-    let term = Term.(const run $ libraries_term $ arg_name) in
+    let term =
+      Term.(
+        const Gen_application.run $ libraries_term $ preprocess_term $ arg_name)
+    in
     let doc =
       "Generate Dune stanzas for an Eliom application. The server side is \
        compiled to $(b,NAME).exe and the client side to \

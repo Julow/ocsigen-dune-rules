@@ -1,4 +1,4 @@
-  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c my_lib > dune
+  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_lib > dune
 
   $ dune format-dune-file dune > dune.fmt
   $ diff dune dune.fmt
@@ -23,6 +23,12 @@
      b
      --libraries
      c
+     --server-preprocess
+     p1
+     --client-preprocess
+     p2
+     --preprocess
+     p3
      my_lib)))
   
   ;
@@ -39,7 +45,7 @@
    (modes byte native)
    (wrapped false)
    (preprocess
-    (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw))
+    (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw p1 p3))
    (libraries eliom.server a c))
   
   (subdir
@@ -51,7 +57,7 @@
     (library_flags
      (:standard -linkall))
     (preprocess
-     (pps eliom.ppx.client js_of_ocaml-ppx))
+     (pps eliom.ppx.client js_of_ocaml-ppx p2 p3))
     (libraries eliom.client js_of_ocaml js_of_ocaml-lwt b c))
    (dynamic_include ../dune.client))
   
