@@ -14,13 +14,7 @@ let server_executable_stanza ~name ~libraries =
         ];
       field "libraries"
         (atoms
-           ([
-              "eliom.server";
-              "ocsigenserver";
-              "ocsigenserver.ext.staticmod";
-              "ocsipersist-sqlite";
-              "js_of_ocaml";
-            ]
+           ([ "eliom.server"; "ocsigenserver"; "js_of_ocaml" ]
            @ libraries.Gen_utils.server));
     ]
 
