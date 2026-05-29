@@ -1,14 +1,13 @@
 open Sexpgen
 
-let public_name_field ~package ~name suffix =
-  match package with
-  | Some pkg -> field "public_name" [ atomf "%s.%s.%s" pkg name suffix ]
-  | None -> field "public_name" [ atomf "%s.%s" name suffix ]
+let public_name_field ~public_name ~name suffix =
+  let n = Option.value public_name ~default:name in
+  field "public_name" [ atom (n ^ suffix) ]
 
-let server_library_stanza ~package ~name ~libraries ~preprocess =
+let server_library_stanza ~public_name ~name ~libraries ~preprocess =
   field "library"
     [
-      public_name_field ~package ~name "server";
+      public_name_field ~public_name ~name ".server";
       field "name" [ atom name ];
       field "modes" [ atom "byte"; atom "native" ];
       field "wrapped" [ atom "false" ];
@@ -24,10 +23,10 @@ let server_library_stanza ~package ~name ~libraries ~preprocess =
         (atoms ("eliom.server" :: libraries.Gen_utils.lib_server));
     ]
 
-let client_library_stanza ~package ~name ~libraries ~preprocess =
+let client_library_stanza ~public_name ~name ~libraries ~preprocess =
   field "library"
     [
-      public_name_field ~package ~name "client";
+      public_name_field ~public_name ~name ".client";
       field "name" [ atom name ];
       field "modes" [ atom "byte" ];
       field "wrapped" [ atom "false" ];
@@ -43,11 +42,11 @@ let client_library_stanza ~package ~name ~libraries ~preprocess =
           :: libraries.Gen_utils.lib_client));
     ]
 
-let client_subdir_stanza ~package ~name ~libraries ~preprocess =
+let client_subdir_stanza ~public_name ~name ~libraries ~preprocess =
   field "subdir"
     [
       atom "client";
-      client_library_stanza ~package ~name ~libraries ~preprocess;
+      client_library_stanza ~public_name ~name ~libraries ~preprocess;
       field "dynamic_include" [ atom "../dune.client" ];
     ]
 
@@ -70,11 +69,11 @@ let gen_client_modules_rule () =
         ];
     ]
 
-let run package libraries preprocess name =
+let run public_name libraries preprocess name =
   Gen_utils.promote_rule ()
   @ [
-      server_library_stanza ~package ~name ~libraries ~preprocess;
-      client_subdir_stanza ~package ~name ~libraries ~preprocess;
+      server_library_stanza ~public_name ~name ~libraries ~preprocess;
+      client_subdir_stanza ~public_name ~name ~libraries ~preprocess;
       gen_client_modules_rule ();
     ]
   |> pp_list Format.std_formatter

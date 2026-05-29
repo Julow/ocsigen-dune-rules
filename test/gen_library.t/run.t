@@ -1,4 +1,4 @@
-  $ ocsigen-dune-rules gen-library --package my_pkg --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_lib > dune
+  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_lib > dune
 
   $ dune format-dune-file dune > dune.fmt
   $ diff dune dune.fmt
@@ -17,8 +17,6 @@
     (run
      ocsigen-dune-rules
      gen-library
-     --package
-     my_pkg
      --server-libraries
      a
      --client-libraries
@@ -43,7 +41,7 @@
     (diff dune dune.corrected)))
   
   (library
-   (public_name my_pkg.my_lib.server)
+   (public_name my_lib.server)
    (name my_lib)
    (modes byte native)
    (wrapped false)
@@ -56,7 +54,7 @@
   (subdir
    client
    (library
-    (public_name my_pkg.my_lib.client)
+    (public_name my_lib.client)
     (name my_lib)
     (modes byte)
     (wrapped false)
