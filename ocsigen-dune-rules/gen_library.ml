@@ -12,6 +12,7 @@ let server_library_stanza ~package ~name ~libraries ~preprocess =
       field "name" [ atom name ];
       field "modes" [ atom "byte"; atom "native" ];
       field "wrapped" [ atom "false" ];
+      field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
       field "preprocess"
         [
           field "pps"

@@ -47,6 +47,8 @@
    (name my_lib)
    (modes byte native)
    (wrapped false)
+   (library_flags
+    (:standard -linkall))
    (preprocess
     (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw p1 p3))
    (libraries eliom.server a c))
