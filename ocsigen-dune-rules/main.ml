@@ -2,6 +2,25 @@ open Cmdliner
 
 let s_internal_commands = "INTERNAL COMMANDS"
 
+let libraries_term =
+  let docv = "LIB1,LIB2,..." in
+  let arg_server =
+    let doc = "Server-side libraries (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "server-libraries" ])
+  in
+  let arg_client =
+    let doc = "Client-side libraries (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "client-libraries" ])
+  in
+  let arg_both =
+    let doc = "Libraries used on both sides (comma-separated list)." in
+    Arg.(value & opt (list string) [] & info ~doc ~docv [ "libraries" ])
+  in
+  Term.(
+    const (fun server client both ->
+        { Gen_utils.server = server @ both; client = client @ both })
+    $ arg_server $ arg_client $ arg_both)
+
 module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
     let extra_ppx_args =
@@ -66,40 +85,14 @@ module Gen_client_modules = struct
 end
 
 module Gen_library = struct
-  let run libraries_server libraries_client libraries name =
-    Gen_library.run ~libraries_server ~libraries_client ~libraries ~name
+  let run libraries name = Gen_library.run ~libraries ~name
 
   let arg_name =
     let doc = "Name of the Eliom library." in
     Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
 
-  let arg_server_libraries =
-    let doc = "Comma-separated list of libraries used on the server-side." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "server-libraries" ])
-
-  let arg_client_libraries =
-    let doc = "Comma-separated list of libraries used on the client-side." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "client-libraries" ])
-
-  let arg_libraries =
-    let doc = "Comma-separated list of libraries used on both sides." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "libraries" ])
-
   let cmd =
-    let term =
-      Term.(
-        const run $ arg_server_libraries $ arg_client_libraries $ arg_libraries
-        $ arg_name)
-    in
+    let term = Term.(const run $ libraries_term $ arg_name) in
     let doc =
       "Generate Dune stanzas for a client/server Eliom library. The libraries \
        are named $(b,NAME).client and $(b,NAME).server."
@@ -109,40 +102,14 @@ module Gen_library = struct
 end
 
 module Gen_application = struct
-  let run libraries_server libraries_client libraries name =
-    Gen_application.run ~libraries_server ~libraries_client ~libraries ~name
+  let run libraries name = Gen_application.run ~libraries ~name
 
   let arg_name =
     let doc = "Name of the Eliom application." in
     Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
 
-  let arg_server_libraries =
-    let doc = "Comma-separated list of libraries used on the server-side." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "server-libraries" ])
-
-  let arg_client_libraries =
-    let doc = "Comma-separated list of libraries used on the client-side." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "client-libraries" ])
-
-  let arg_libraries =
-    let doc = "Comma-separated list of libraries used on both sides." in
-    Arg.(
-      value
-      & opt (list string) []
-      & info ~doc ~docv:"LIB1,LIB2,..." [ "libraries" ])
-
   let cmd =
-    let term =
-      Term.(
-        const run $ arg_server_libraries $ arg_client_libraries $ arg_libraries
-        $ arg_name)
-    in
+    let term = Term.(const run $ libraries_term $ arg_name) in
     let doc =
       "Generate Dune stanzas for an Eliom application. The server side is \
        compiled to $(b,NAME).exe and the client side to \

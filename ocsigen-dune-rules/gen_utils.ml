@@ -1,5 +1,7 @@
 open Sexpgen
 
+type libraries = { server : string list; client : string list }
+
 let promote_rule () =
   let argv = List.tl (Array.to_list Sys.argv) in
   [

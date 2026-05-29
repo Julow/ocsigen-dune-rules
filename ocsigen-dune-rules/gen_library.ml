@@ -1,6 +1,6 @@
 open Sexpgen
 
-let server_library_stanza ~name ~libraries_server =
+let server_library_stanza ~name ~libraries =
   field "library"
     [
       field "public_name" [ atomf "%s.server" name ];
@@ -12,10 +12,10 @@ let server_library_stanza ~name ~libraries_server =
           field "pps"
             (atoms [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "--rpc-raw" ]);
         ];
-      field "libraries" (atoms ("eliom.server" :: libraries_server));
+      field "libraries" (atoms ("eliom.server" :: libraries.Gen_utils.server));
     ]
 
-let client_library_stanza ~name ~libraries_client =
+let client_library_stanza ~name ~libraries =
   field "library"
     [
       field "public_name" [ atomf "%s.client" name ];
@@ -28,14 +28,14 @@ let client_library_stanza ~name ~libraries_client =
       field "libraries"
         (atoms
            ("eliom.client" :: "js_of_ocaml" :: "js_of_ocaml-lwt"
-          :: libraries_client));
+          :: libraries.Gen_utils.client));
     ]
 
-let client_subdir_stanza ~name ~libraries_client =
+let client_subdir_stanza ~name ~libraries =
   field "subdir"
     [
       atom "client";
-      client_library_stanza ~name ~libraries_client;
+      client_library_stanza ~name ~libraries;
       field "dynamic_include" [ atom "../dune.client" ];
     ]
 
@@ -58,13 +58,11 @@ let gen_client_modules_rule () =
         ];
     ]
 
-let run ~libraries_server ~libraries_client ~libraries ~name =
-  let libraries_server = libraries_server @ libraries
-  and libraries_client = libraries_client @ libraries in
+let run ~libraries ~name =
   Gen_utils.promote_rule ()
   @ [
-      server_library_stanza ~name ~libraries_server;
-      client_subdir_stanza ~name ~libraries_client;
+      server_library_stanza ~name ~libraries;
+      client_subdir_stanza ~name ~libraries;
       gen_client_modules_rule ();
     ]
   |> pp_list Format.std_formatter

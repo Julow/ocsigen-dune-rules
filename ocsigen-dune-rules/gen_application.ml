@@ -1,6 +1,6 @@
 open Sexpgen
 
-let server_executable_stanza ~name ~libraries_server =
+let server_executable_stanza ~name ~libraries =
   field "executable"
     [
       field "public_name" [ atom name ];
@@ -21,10 +21,10 @@ let server_executable_stanza ~name ~libraries_server =
               "ocsipersist-sqlite";
               "js_of_ocaml";
             ]
-           @ libraries_server));
+           @ libraries.Gen_utils.server));
     ]
 
-let client_executable_stanza ~name ~libraries_client =
+let client_executable_stanza ~name ~libraries =
   field "executable"
     [
       field "name" [ atom name ];
@@ -48,14 +48,14 @@ let client_executable_stanza ~name ~libraries_client =
       field "libraries"
         (atoms
            ([ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
-           @ libraries_client));
+           @ libraries.Gen_utils.client));
     ]
 
-let client_subdir_stanza ~name ~libraries_client =
+let client_subdir_stanza ~name ~libraries =
   field "subdir"
     [
       atom "client";
-      client_executable_stanza ~name ~libraries_client;
+      client_executable_stanza ~name ~libraries;
       field "dynamic_include" [ atom "../dune.client" ];
     ]
 
@@ -96,13 +96,11 @@ let check_modules_rule ~name =
         ];
     ]
 
-let run ~libraries_server ~libraries_client ~libraries ~name =
-  let libraries_server = libraries_server @ libraries
-  and libraries_client = libraries_client @ libraries in
+let run ~libraries ~name =
   Gen_utils.promote_rule ()
   @ [
-      server_executable_stanza ~name ~libraries_server;
-      client_subdir_stanza ~name ~libraries_client;
+      server_executable_stanza ~name ~libraries;
+      client_subdir_stanza ~name ~libraries;
       gen_client_modules_rule ();
       check_modules_rule ~name;
     ]
