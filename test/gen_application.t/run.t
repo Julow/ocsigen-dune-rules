@@ -1,4 +1,4 @@
-  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_lib > dune
+  $ ocsigen-dune-rules gen-application --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_app > dune
 
   $ dune format-dune-file dune > dune.fmt
   $ diff dune dune.fmt
@@ -16,7 +16,7 @@
     dune.corrected
     (run
      ocsigen-dune-rules
-     gen-library
+     gen-application
      --server-libraries
      a
      --client-libraries
@@ -29,7 +29,7 @@
      p2
      --preprocess
      p3
-     my_lib)))
+     my_app)))
   
   ;
   ; Below this line, any changes will be overwritten.
@@ -40,28 +40,25 @@
    (action
     (diff dune dune.corrected)))
   
-  (library
-   (public_name my_lib.server)
-   (name my_lib)
+  (executable
+   (public_name my_app)
+   (name my_app)
+   (package my_app)
    (modes byte native)
-   (wrapped false)
-   (library_flags
-    (:standard -linkall))
    (preprocess
     (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw p1 p3))
-   (libraries eliom.server a c))
+   (libraries eliom.server ocsigenserver js_of_ocaml a c))
   
   (subdir
    client
-   (library
-    (public_name my_lib.client)
-    (name my_lib)
-    (modes byte)
-    (wrapped false)
-    (library_flags
-     (:standard -linkall))
+   (executable
+    (name my_app)
+    (modes js byte)
     (preprocess
      (pps js_of_ocaml-ppx p2 p3))
+    (js_of_ocaml
+     (build_runtime_flags :standard --enable use-js-string)
+     (flags :standard --enable with-js-error --enable use-js-string))
     (libraries eliom.client js_of_ocaml js_of_ocaml-lwt b c))
    (dynamic_include ../dune.client))
   
@@ -73,3 +70,14 @@
     (with-stdout-to
      dune.client
      (run ocsigen-dune-rules gen-client-modules .))))
+  
+  (rule
+   (alias runtest)
+   (action
+    (run
+     ocsigen-dune-rules
+     check-modules
+     --client
+     %{dep:client/my_app.bc}
+     --server
+     %{dep:my_app.bc})))

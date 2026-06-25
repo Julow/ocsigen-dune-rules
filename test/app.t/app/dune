@@ -12,9 +12,9 @@
    ocsigen-dune-rules
    gen-application
    --server-libraries
-   my_lib.server
-   --client-libraries
-   my_lib.client
+   ocsipersist-sqlite,ocsigenserver.ext.staticmod
+   --eliom-libraries
+   my_lib
    my_app)))
 
 ;
@@ -36,9 +36,9 @@
  (libraries
   eliom.server
   ocsigenserver
-  ocsigenserver.ext.staticmod
-  ocsipersist-sqlite
   js_of_ocaml
+  ocsipersist-sqlite
+  ocsigenserver.ext.staticmod
   my_lib.server))
 
 (subdir
@@ -47,7 +47,7 @@
   (name my_app)
   (modes js byte)
   (preprocess
-   (pps eliom.ppx.client js_of_ocaml-ppx))
+   (pps js_of_ocaml-ppx))
   (js_of_ocaml
    (build_runtime_flags :standard --enable use-js-string)
    (flags :standard --enable with-js-error --enable use-js-string))

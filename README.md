@@ -6,56 +6,23 @@ Generate Dune rules for building a client/server application or library.
 
 ## Usage
 
-The following `dune` file builds the client and server parts of your library.
-Place it in a directory containing `*.eliom` files.
+Use this command to generate the dune rules for an Ocsigen application:
 
-`app/dune`:
-```dune
-(executable
- (name my_app)
- (modes byte native)
- (preprocess
-  (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw))
- (libraries
-  eliom.server
-  ocsigenserver
-  ocsipersist-sqlite
-  js_of_ocaml
-  my_lib.server))
-
-(subdir
- client
- (executable
-  (name my_app)
-  (modes js byte)
-  (preprocess
-   (pps eliom.ppx.client js_of_ocaml-ppx))
-  (js_of_ocaml)
-  (libraries eliom.client js_of_ocaml js_of_ocaml-lwt my_lib.client))
- (dynamic_include ../dune.client))
-
-(rule
- (deps
-  (glob_files *.eliom)
-  (glob_files *.eliomi))
- (action
-  (with-stdout-to
-   dune.client
-   (run ocsigen-dune-rules gen-client-modules .))))
-
-(rule
- (alias runtest)
- (action
-  (run
-   ocsigen-dune-rules
-   check-modules
-   --client
-   %{dep:client/my_app.bc}
-   --server
-   %{dep:my_app.bc})))
+```
+ocsigen-dune-rules gen-application my_app \
+  --libraries lwt,logs \
+  --server-libraries ocsipersist-sqlite \
+  --eliom-libraries ocsigen-toolkit > app/dune
 ```
 
-You must also tell Dune that `*.eliom` files contain source code by adding this to your `dune-project` file:
+The libraries are provided as an example. Change `app/dune` if your application
+code is not in `app/`.
+
+To update the generated rules later, modify the `ocsigen-dune-rules` command in
+the generated `dune` file and run `dune runtest --auto-promote`.
+
+You must also tell Dune that `*.eliom` files contain source code by adding this
+to your `dune-project` file:
 
 `dune-project`:
 ```dune

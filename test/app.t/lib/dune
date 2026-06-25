@@ -24,6 +24,8 @@
  (name my_lib)
  (modes byte native)
  (wrapped false)
+ (library_flags
+  (:standard -linkall))
  (preprocess
   (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw))
  (libraries eliom.server))
@@ -38,7 +40,7 @@
   (library_flags
    (:standard -linkall))
   (preprocess
-   (pps eliom.ppx.client js_of_ocaml-ppx))
+   (pps js_of_ocaml-ppx))
   (libraries eliom.client js_of_ocaml js_of_ocaml-lwt))
  (dynamic_include ../dune.client))
 
