@@ -1,4 +1,4 @@
-  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_lib > dune
+  $ ocsigen-dune-rules gen-library --wrapped false my_lib > dune
 
   $ dune format-dune-file dune > dune.fmt
   $ diff dune dune.fmt
@@ -14,22 +14,7 @@
   (rule
    (with-stdout-to
     dune.corrected
-    (run
-     ocsigen-dune-rules
-     gen-library
-     --server-libraries
-     a
-     --client-libraries
-     b
-     --libraries
-     c
-     --server-preprocess
-     p1
-     --client-preprocess
-     p2
-     --preprocess
-     p3
-     my_lib)))
+    (run ocsigen-dune-rules gen-library --wrapped false my_lib)))
   
   ;
   ; Below this line, any changes will be overwritten.
@@ -44,12 +29,12 @@
    (public_name my_lib.server)
    (name my_lib)
    (modes byte native)
-   (wrapped true)
+   (wrapped false)
    (library_flags
     (:standard -linkall))
    (preprocess
-    (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw p1 p3))
-   (libraries eliom.server a c))
+    (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw))
+   (libraries eliom.server))
   
   (subdir
    client
@@ -57,12 +42,12 @@
     (public_name my_lib.client)
     (name my_lib)
     (modes byte)
-    (wrapped true)
+    (wrapped false)
     (library_flags
      (:standard -linkall))
     (preprocess
-     (pps js_of_ocaml-ppx p2 p3))
-    (libraries eliom.client js_of_ocaml js_of_ocaml-lwt b c))
+     (pps js_of_ocaml-ppx))
+    (libraries eliom.client js_of_ocaml js_of_ocaml-lwt))
    (dynamic_include ../dune.client))
   
   (rule
@@ -72,11 +57,4 @@
    (action
     (with-stdout-to
      dune.client
-     (run
-      ocsigen-dune-rules
-      gen-client-modules
-      --internal-prefix
-      my_lib
-      --server-objs-dir
-      ../.my_lib.objs/byte
-      .))))
+     (run ocsigen-dune-rules gen-client-modules .))))

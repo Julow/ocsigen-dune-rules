@@ -46,9 +46,8 @@ input file.
       --intf
       %{dep:../b.eliomi}))))
 
---internal-prefix forwards [-internal-prefix PREFIX] to
-ocsigen-ppx-client.  The PREFIX is inserted before the existing
-arguments of every rule.
+TODO: --internal-prefix forwards [-internal-prefix PREFIX] to
+ocsigen-ppx-client. Unreleased: https://github.com/ocsigen/eliom/pull/855
 
   $ ocsigen-dune-rules gen-client-modules --internal-prefix Os .
   (rule
@@ -61,8 +60,6 @@ arguments of every rule.
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
-      -internal-prefix
-      Os
       --impl
       -server-cmo
       %{cmo:../a}
@@ -78,8 +75,6 @@ arguments of every rule.
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
-      -internal-prefix
-      Os
       --impl
       -server-cmo
       %{cmo:../b}
@@ -95,11 +90,8 @@ arguments of every rule.
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
-      -internal-prefix
-      Os
       --intf
       %{dep:../b.eliomi}))))
-
 --subdir DIR wraps each generated rule in a (subdir DIR ...) stanza
 so the preprocessed files land in DIR/.  The input paths still refer
 to the original location relative to the workspace root, thanks to
