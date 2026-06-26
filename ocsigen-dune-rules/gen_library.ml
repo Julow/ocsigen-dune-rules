@@ -1,5 +1,8 @@
 open Sexpgen
 
+let server_default_libs = [ "eliom.server" ]
+let client_default_libs = [ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
+
 let public_name_field ~public_name ~name suffix =
   let n = Option.value public_name ~default:name in
   field "public_name" [ atom (n ^ suffix) ]
@@ -15,7 +18,7 @@ let server_library_stanza ~public_name ~name ~libraries ~preprocess =
       field "preprocess"
         [ field "pps" (atoms (Gen_utils.server_pps preprocess)) ];
       field "libraries"
-        (atoms ("eliom.server" :: libraries.Gen_utils.lib_server));
+        (atoms (server_default_libs @ libraries.Gen_utils.lib_server));
     ]
 
 let client_library_stanza ~public_name ~name ~libraries ~preprocess =
@@ -29,9 +32,7 @@ let client_library_stanza ~public_name ~name ~libraries ~preprocess =
       field "preprocess"
         [ field "pps" (atoms (Gen_utils.client_pps preprocess)) ];
       field "libraries"
-        (atoms
-           ("eliom.client" :: "js_of_ocaml" :: "js_of_ocaml-lwt"
-          :: libraries.Gen_utils.lib_client));
+        (atoms (client_default_libs @ libraries.Gen_utils.lib_client));
     ]
 
 let client_subdir_stanza ~public_name ~name ~libraries ~preprocess =
@@ -62,6 +63,8 @@ let gen_client_modules_rule () =
     ]
 
 let run public_name libraries preprocess name =
+  Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
+    ~client_libs:client_default_libs libraries preprocess;
   Gen_utils.promote_rule ()
   @ [
       server_library_stanza ~public_name ~name ~libraries ~preprocess;
