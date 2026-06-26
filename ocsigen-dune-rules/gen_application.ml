@@ -8,12 +8,7 @@ let server_executable_stanza ~name ~libraries ~preprocess =
       field "package" [ atom name ];
       field "modes" [ atom "byte"; atom "native" ];
       field "preprocess"
-        [
-          field "pps"
-            (atoms
-               ("eliom.ppx.server" :: "ocsigen-ppx-rpc" :: "--rpc-raw"
-              :: preprocess.Gen_utils.pps_server));
-        ];
+        [ field "pps" (atoms (Gen_utils.server_pps preprocess)) ];
       field "libraries"
         (atoms
            ([ "eliom.server"; "ocsigenserver"; "js_of_ocaml" ]
@@ -26,10 +21,7 @@ let client_executable_stanza ~name ~libraries ~preprocess =
       field "name" [ atom name ];
       field "modes" [ atom "js"; atom "byte" ];
       field "preprocess"
-        [
-          field "pps"
-            (atoms ("js_of_ocaml-ppx" :: preprocess.Gen_utils.pps_client));
-        ];
+        [ field "pps" (atoms (Gen_utils.client_pps preprocess)) ];
       field "js_of_ocaml"
         [
           field "build_runtime_flags"

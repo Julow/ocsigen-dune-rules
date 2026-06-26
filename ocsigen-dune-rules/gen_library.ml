@@ -13,12 +13,7 @@ let server_library_stanza ~public_name ~name ~libraries ~preprocess =
       field "wrapped" [ atom "false" ];
       field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
       field "preprocess"
-        [
-          field "pps"
-            (atoms
-               ("eliom.ppx.server" :: "ocsigen-ppx-rpc" :: "--rpc-raw"
-              :: preprocess.Gen_utils.pps_server));
-        ];
+        [ field "pps" (atoms (Gen_utils.server_pps preprocess)) ];
       field "libraries"
         (atoms ("eliom.server" :: libraries.Gen_utils.lib_server));
     ]
@@ -32,10 +27,7 @@ let client_library_stanza ~public_name ~name ~libraries ~preprocess =
       field "wrapped" [ atom "false" ];
       field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
       field "preprocess"
-        [
-          field "pps"
-            (atoms ("js_of_ocaml-ppx" :: preprocess.Gen_utils.pps_client));
-        ];
+        [ field "pps" (atoms (Gen_utils.client_pps preprocess)) ];
       field "libraries"
         (atoms
            ("eliom.client" :: "js_of_ocaml" :: "js_of_ocaml-lwt"

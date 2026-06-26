@@ -73,3 +73,9 @@
     (with-stdout-to
      dune.client
      (run ocsigen-dune-rules gen-client-modules .))))
+
+Remove the --rpc-raw flag:
+
+  $ ocsigen-dune-rules gen-library --no-rpc-raw my_lib | grep pps
+    (pps eliom.ppx.server ocsigen-ppx-rpc))
+     (pps js_of_ocaml-ppx))

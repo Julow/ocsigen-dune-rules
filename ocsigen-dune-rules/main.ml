@@ -46,10 +46,18 @@ let preprocess_term =
     let doc = "PPX used on both sides (comma-separated list)." in
     Arg.(value & opt (list string) [] & info ~doc ~docv [ "preprocess" ])
   in
+  let arg_no_rpc_raw =
+    let doc = "Don't pass [--rpc-raw] to [ocsigen-ppx-rpc]." in
+    Arg.(value & flag & info ~doc [ "no-rpc-raw" ])
+  in
   Term.(
-    const (fun server client both ->
-        { Gen_utils.pps_server = server @ both; pps_client = client @ both })
-    $ arg_server $ arg_client $ arg_both)
+    const (fun server client both no_rpc_raw ->
+        {
+          Gen_utils.pps_server = server @ both;
+          pps_client = client @ both;
+          rpc_raw = not no_rpc_raw;
+        })
+    $ arg_server $ arg_client $ arg_both $ arg_no_rpc_raw)
 
 module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
