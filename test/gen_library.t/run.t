@@ -79,3 +79,12 @@ Remove the --rpc-raw flag:
   $ ocsigen-dune-rules gen-library --no-rpc-raw my_lib | grep pps
     (pps eliom.ppx.server ocsigen-ppx-rpc))
      (pps js_of_ocaml-ppx))
+
+Warns when passing a default library or preprocessor:
+
+  $ ocsigen-dune-rules gen-library --server-libraries eliom.server --libraries js_of_ocaml --server-preprocess eliom.ppx.server --client-preprocess js_of_ocaml-ppx my_lib >/dev/null
+  Error: client preprocess "js_of_ocaml-ppx" is already included by default.
+  Error: server preprocess "eliom.ppx.server" is already included by default.
+  Error: client library "js_of_ocaml" is already included by default.
+  Error: server library "eliom.server" is already included by default.
+  [1]

@@ -1,5 +1,8 @@
 open Sexpgen
 
+let server_default_libs = [ "eliom.server"; "ocsigenserver"; "js_of_ocaml" ]
+let client_default_libs = [ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
+
 let server_executable_stanza ~name ~libraries ~preprocess =
   field "executable"
     [
@@ -10,9 +13,7 @@ let server_executable_stanza ~name ~libraries ~preprocess =
       field "preprocess"
         [ field "pps" (atoms (Gen_utils.server_pps preprocess)) ];
       field "libraries"
-        (atoms
-           ([ "eliom.server"; "ocsigenserver"; "js_of_ocaml" ]
-           @ libraries.Gen_utils.lib_server));
+        (atoms (server_default_libs @ libraries.Gen_utils.lib_server));
     ]
 
 let client_executable_stanza ~name ~libraries ~preprocess =
@@ -37,9 +38,7 @@ let client_executable_stanza ~name ~libraries ~preprocess =
                ]);
         ];
       field "libraries"
-        (atoms
-           ([ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
-           @ libraries.Gen_utils.lib_client));
+        (atoms (client_default_libs @ libraries.Gen_utils.lib_client));
     ]
 
 let client_subdir_stanza ~name ~libraries ~preprocess =
@@ -88,6 +87,8 @@ let check_modules_rule ~name =
     ]
 
 let run libraries preprocess name =
+  Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
+    ~client_libs:client_default_libs libraries preprocess;
   Gen_utils.promote_rule ()
   @ [
       server_executable_stanza ~name ~libraries ~preprocess;

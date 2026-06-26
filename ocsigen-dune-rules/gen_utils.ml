@@ -8,12 +8,35 @@ type preprocess = {
   rpc_raw : bool;
 }
 
+let server_default_pps = [ "eliom.ppx.server"; "ocsigen-ppx-rpc" ]
+let client_default_pps = [ "js_of_ocaml-ppx" ]
+
 let server_pps preprocess =
   let rpc_raw_flag = if preprocess.rpc_raw then [ "--rpc-raw" ] else [] in
-  ("eliom.ppx.server" :: "ocsigen-ppx-rpc" :: rpc_raw_flag)
-  @ preprocess.pps_server
+  (server_default_pps @ rpc_raw_flag) @ preprocess.pps_server
 
-let client_pps preprocess = "js_of_ocaml-ppx" :: preprocess.pps_client
+let client_pps preprocess = client_default_pps @ preprocess.pps_client
+
+(** Generate a warning when a default library or preprocessor is passed. *)
+let check_duplicated_deps ~server_libs ~client_libs libraries preprocess =
+  (* non short-circuiting to print all the errors at once. *)
+  let ( ||| ) = ( || ) in
+  let check what defaults items =
+    List.fold_left
+      (fun acc item ->
+        if List.mem item defaults then (
+          Printf.eprintf "Error: %s %S is already included by default.\n" what
+            item;
+          true)
+        else acc)
+      false items
+  in
+  if
+    check "server library" server_libs libraries.lib_server
+    ||| check "client library" client_libs libraries.lib_client
+    ||| check "server preprocess" server_default_pps preprocess.pps_server
+    ||| check "client preprocess" client_default_pps preprocess.pps_client
+  then exit 1
 
 let promote_rule () =
   let argv = List.tl (Array.to_list Sys.argv) in
