@@ -137,10 +137,14 @@ module Gen_library = struct
       & opt (some string) None
       & info ~doc ~docv:"PUBLIC_NAME" [ "public-name" ])
 
+  let opt_wrapped =
+    let doc = "Control the (wrapped) field of the (library) stanza." in
+    Arg.(required & opt (some bool) None & info ~doc ~docv:"BOOL" [ "wrapped" ])
+
   let cmd =
     let term =
       Term.(
-        const Gen_library.run $ opt_public_name $ libraries_term
+        const Gen_library.run $ opt_public_name $ opt_wrapped $ libraries_term
         $ preprocess_term $ arg_name)
     in
     let doc =

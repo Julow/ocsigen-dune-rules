@@ -62,7 +62,10 @@ let gen_client_modules_rule () =
         ];
     ]
 
-let run public_name libraries preprocess name =
+let run public_name wrapped libraries preprocess name =
+  if wrapped then (
+    Printf.eprintf "Error: Wrapped libraries are not supported.\n";
+    exit 1);
   Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
     ~client_libs:client_default_libs libraries preprocess;
   Gen_utils.promote_rule ()
