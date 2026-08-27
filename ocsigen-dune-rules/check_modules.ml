@@ -11,7 +11,7 @@ let extract_source_files toc ic =
       evl
   in
   (* Code taken from [tools/dumpobj.ml]. *)
-  begin match Bytesections.seek_section toc ic Bytesections.Name.DBUG with
+  begin match Compat.Bytesections.seek_dbug_section toc ic with
   | exception Not_found -> ()
   | (_ : int) ->
       let num_eventlists = input_binary_int ic in
@@ -29,7 +29,7 @@ let extract_source_files toc ic =
     bytecode program. Requires that the program is compiled with [-g]. *)
 let source_files_in_bytecode path =
   In_channel.with_open_bin path (fun ic ->
-      let toc = Bytesections.read_toc ic in
+      let toc = Compat.Bytesections.read_toc ic in
       extract_source_files toc ic)
 
 module S = Set.Make (String)
@@ -43,10 +43,10 @@ let run ~server_bytecode ~client_bytecode =
   let server_modules = eliom_modules server_bytecode in
   let client_modules = eliom_modules client_bytecode in
   let missing_server_modules =
-    S.diff server_modules client_modules |> S.to_list
+    S.diff server_modules client_modules |> S.elements
   in
   let missing_client_modules =
-    S.diff client_modules server_modules |> S.to_list
+    S.diff client_modules server_modules |> S.elements
   in
   let missing_modules =
     missing_server_modules <> [] || missing_client_modules <> []

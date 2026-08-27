@@ -17,7 +17,8 @@
  (synopsis
   "Generate Dune rules for building a client/server application or library")
  (depends
-  ocaml
+  (ocaml
+   (>= "4.14"))
   cmdliner
   ocsigen-ppx-rpc
   (eliom

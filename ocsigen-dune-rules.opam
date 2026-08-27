@@ -7,7 +7,7 @@ authors: ["Jules Aguillon <jules@j3s.fr>"]
 license: "MIT"
 depends: [
   "dune" {>= "3.14"}
-  "ocaml"
+  "ocaml" {>= "4.14"}
   "cmdliner"
   "ocsigen-ppx-rpc"
   "eliom" {>= "12.0.0"}

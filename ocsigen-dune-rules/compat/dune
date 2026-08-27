@@ -1,0 +1,15 @@
+(library
+ (name compat)
+ (libraries compiler-libs.bytecomp))
+
+(rule
+ (enabled_if
+  (>= %{ocaml_version} 5.1))
+ (action
+  (copy post_51/compat.ml compat.ml)))
+
+(rule
+ (enabled_if
+  (< %{ocaml_version} 5.1))
+ (action
+  (copy pre_51/compat.ml compat.ml)))
