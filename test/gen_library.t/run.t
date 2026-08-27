@@ -1,4 +1,4 @@
-  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 my_lib > dune
+  $ ocsigen-dune-rules gen-library --server-libraries a --client-libraries b --libraries c --server-preprocess p1 --client-preprocess p2 --preprocess p3 --wrapped false my_lib > dune
 
   $ dune format-dune-file dune > dune.fmt
   $ diff dune dune.fmt
@@ -29,6 +29,8 @@
      p2
      --preprocess
      p3
+     --wrapped
+     false
      my_lib)))
   
   ;
@@ -76,15 +78,21 @@
 
 Remove the --rpc-raw flag:
 
-  $ ocsigen-dune-rules gen-library --no-rpc-raw my_lib | grep pps
+  $ ocsigen-dune-rules gen-library --no-rpc-raw --wrapped false my_lib | grep pps
     (pps eliom.ppx.server ocsigen-ppx-rpc))
      (pps js_of_ocaml-ppx))
 
 Warns when passing a default library or preprocessor:
 
-  $ ocsigen-dune-rules gen-library --server-libraries eliom.server --libraries js_of_ocaml --server-preprocess eliom.ppx.server --client-preprocess js_of_ocaml-ppx my_lib >/dev/null
+  $ ocsigen-dune-rules gen-library --server-libraries eliom.server --libraries js_of_ocaml --server-preprocess eliom.ppx.server --client-preprocess js_of_ocaml-ppx --wrapped false my_lib >/dev/null
   Error: client preprocess "js_of_ocaml-ppx" is already included by default.
   Error: server preprocess "eliom.ppx.server" is already included by default.
   Error: client library "js_of_ocaml" is already included by default.
   Error: server library "eliom.server" is already included by default.
+  [1]
+
+--wrapped true generates an error for now.
+
+  $ ocsigen-dune-rules gen-library --wrapped true my_lib
+  Error: Wrapped libraries are not supported.
   [1]
