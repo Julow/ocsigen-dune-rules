@@ -90,3 +90,30 @@ Warns when passing a default library or preprocessor:
   Error: client library "js_of_ocaml" is already included by default.
   Error: server library "js_of_ocaml" is already included by default.
   [1]
+
+The name can be changed:
+
+  $ ocsigen-dune-rules gen-application my_app > dune.1
+  $ ocsigen-dune-rules gen-application --name main my_app > dune.2
+  $ diff dune.1 dune.2
+  11c11
+  <   (run ocsigen-dune-rules gen-application my_app)))
+  ---
+  >   (run ocsigen-dune-rules gen-application --name main my_app)))
+  24c24
+  <  (name my_app)
+  ---
+  >  (name main)
+  34c34
+  <   (name my_app)
+  ---
+  >   (name main)
+  60c60
+  <    %{dep:client/my_app.bc}
+  ---
+  >    %{dep:client/main.bc}
+  62c62
+  <    %{dep:my_app.bc})))
+  ---
+  >    %{dep:main.bc})))
+  [1]
