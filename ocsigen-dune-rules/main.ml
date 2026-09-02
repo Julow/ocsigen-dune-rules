@@ -160,10 +160,19 @@ module Gen_application = struct
     let doc = "Name of the Eliom application." in
     Arg.(required & pos 0 (some string) None & info ~doc ~docv:"NAME" [])
 
+  let opt_name =
+    let doc =
+      "Specify the main module and the name of the compiled executables. This \
+       corresponds to the (name) field of the (executable) stanzas. By \
+       default, the application name is used."
+    in
+    Arg.(value & opt (some string) None & info ~doc ~docv:"MODULE" [ "name" ])
+
   let cmd =
     let term =
       Term.(
-        const Gen_application.run $ libraries_term $ preprocess_term $ arg_name)
+        const Gen_application.run $ opt_name $ libraries_term $ preprocess_term
+        $ arg_name)
     in
     let doc =
       "Generate Dune stanzas for an Eliom application. The server side is \
