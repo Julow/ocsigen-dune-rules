@@ -32,7 +32,11 @@
  (package my_app)
  (modes byte native)
  (preprocess
-  (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw))
+  (pps
+   eliom.ppx.server
+   ocsigen-ppx-rpc
+   js_of_ocaml-ppx_deriving_json
+   --rpc-raw))
  (libraries
   eliom.server
   ocsigenserver
@@ -47,7 +51,7 @@
   (name my_app)
   (modes js byte)
   (preprocess
-   (pps js_of_ocaml-ppx))
+   (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
   (js_of_ocaml
    (build_runtime_flags :standard --enable use-js-string)
    (flags :standard --enable with-js-error --enable use-js-string))
