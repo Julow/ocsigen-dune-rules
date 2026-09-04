@@ -21,6 +21,7 @@
    (>= "4.14"))
   cmdliner
   ocsigen-ppx-rpc
+  js_of_ocaml-ppx_deriving_json
   (eliom
    (>= "12.0.0"))
   (ocsigenserver :with-test)

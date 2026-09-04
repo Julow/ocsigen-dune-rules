@@ -46,7 +46,13 @@
    (package my_app)
    (modes byte native)
    (preprocess
-    (pps eliom.ppx.server ocsigen-ppx-rpc --rpc-raw p1 p3))
+    (pps
+     eliom.ppx.server
+     ocsigen-ppx-rpc
+     js_of_ocaml-ppx_deriving_json
+     --rpc-raw
+     p1
+     p3))
    (libraries eliom.server ocsigenserver js_of_ocaml a c))
   
   (subdir
@@ -55,7 +61,7 @@
     (name my_app)
     (modes js byte)
     (preprocess
-     (pps js_of_ocaml-ppx p2 p3))
+     (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json p2 p3))
     (js_of_ocaml
      (build_runtime_flags :standard --enable use-js-string)
      (flags :standard --enable with-js-error --enable use-js-string))
@@ -104,15 +110,15 @@ The name can be changed:
   <  (name my_app)
   ---
   >  (name main)
-  34c34
+  38c38
   <   (name my_app)
   ---
   >   (name main)
-  60c60
+  64c64
   <    %{dep:client/my_app.bc}
   ---
   >    %{dep:client/main.bc}
-  62c62
+  66c66
   <    %{dep:my_app.bc})))
   ---
   >    %{dep:main.bc})))
