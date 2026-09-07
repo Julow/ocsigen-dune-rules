@@ -9,9 +9,9 @@ type preprocess = {
 }
 
 let server_default_pps =
-  [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "js_of_ocaml-ppx_deriving_json" ]
+  [ "ocsigen-ppx-rpc"; "js_of_ocaml-ppx_deriving_json"; "eliom.ppx.server" ]
 
-let client_default_pps = [ "js_of_ocaml-ppx"; "js_of_ocaml-ppx_deriving_json" ]
+let client_default_pps = [ "js_of_ocaml-ppx" ]
 
 let server_pps preprocess =
   let rpc_raw_flag = if preprocess.rpc_raw then [ "--rpc-raw" ] else [] in
