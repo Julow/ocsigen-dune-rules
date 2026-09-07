@@ -16,11 +16,12 @@ let server_executable_stanza ~public_name ~name ~libraries ~preprocess =
         (atoms (server_default_libs @ libraries.Gen_utils.lib_server));
     ]
 
-let client_executable_stanza ~name ~libraries ~preprocess =
+let client_executable_stanza ~name ~libraries ~preprocess ~wasm =
+  let wasm = if wasm then [ atom "wasm" ] else [] in
   field "executable"
     [
       field "name" [ atom name ];
-      field "modes" [ atom "js"; atom "byte" ];
+      field "modes" ([ atom "js" ] @ wasm @ [ atom "byte" ]);
       field "preprocess"
         [ field "pps" (atoms (Gen_utils.client_pps preprocess)) ];
       field "js_of_ocaml"
@@ -41,11 +42,11 @@ let client_executable_stanza ~name ~libraries ~preprocess =
         (atoms (client_default_libs @ libraries.Gen_utils.lib_client));
     ]
 
-let client_subdir_stanza ~name ~libraries ~preprocess =
+let client_subdir_stanza ~name ~libraries ~preprocess ~wasm =
   field "subdir"
     [
       atom "client";
-      client_executable_stanza ~name ~libraries ~preprocess;
+      client_executable_stanza ~name ~libraries ~preprocess ~wasm;
       field "dynamic_include" [ atom "../dune.client" ];
     ]
 
@@ -86,14 +87,14 @@ let check_modules_rule ~name =
         ];
     ]
 
-let run name libraries preprocess public_name =
+let run name libraries preprocess wasm public_name =
   let name = Option.value name ~default:public_name in
   Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
     ~client_libs:client_default_libs libraries preprocess;
   Gen_utils.promote_rule ()
   @ [
       server_executable_stanza ~public_name ~name ~libraries ~preprocess;
-      client_subdir_stanza ~name ~libraries ~preprocess;
+      client_subdir_stanza ~name ~libraries ~preprocess ~wasm;
       gen_client_modules_rule ();
       check_modules_rule ~name;
     ]
