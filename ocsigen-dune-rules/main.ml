@@ -168,11 +168,15 @@ module Gen_application = struct
     in
     Arg.(value & opt (some string) None & info ~doc ~docv:"MODULE" [ "name" ])
 
+  let opt_wasm =
+    let doc = "Enable wasm compilation." in
+    Arg.(value & flag & info ~doc [ "wasm" ])
+
   let cmd =
     let term =
       Term.(
         const Gen_application.run $ opt_name $ libraries_term $ preprocess_term
-        $ arg_name)
+        $ opt_wasm $ arg_name)
     in
     let doc =
       "Generate Dune stanzas for an Eliom application. The server side is \

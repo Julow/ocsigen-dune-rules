@@ -123,3 +123,17 @@ The name can be changed:
   ---
   >    %{dep:main.bc})))
   [1]
+
+Flags:
+
+  $ ocsigen-dune-rules gen-application --wasm my_app > dune.2
+  $ diff dune.1 dune.2
+  11c11
+  <   (run ocsigen-dune-rules gen-application my_app)))
+  ---
+  >   (run ocsigen-dune-rules gen-application --wasm my_app)))
+  39c39
+  <   (modes js byte)
+  ---
+  >   (modes js wasm byte)
+  [1]
