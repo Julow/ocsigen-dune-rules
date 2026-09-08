@@ -62,13 +62,13 @@ let gen_client_modules_rule () =
         ];
     ]
 
-let run public_name wrapped libraries preprocess name =
+let run public_name wrapped dune_file libraries preprocess name =
   if wrapped then (
     Printf.eprintf "Error: Wrapped libraries are not supported.\n";
     exit 1);
   Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
     ~client_libs:client_default_libs libraries preprocess;
-  Gen_utils.promote_rule ()
+  Gen_utils.gen_prelude ~dune_file
   @ [
       server_library_stanza ~public_name ~name ~libraries ~preprocess;
       client_subdir_stanza ~public_name ~name ~libraries ~preprocess;

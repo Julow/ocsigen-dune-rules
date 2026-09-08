@@ -1,17 +1,22 @@
-;
-; This Dune file was generated with ocsigen-dune-rules.
-; To update it, modify the invocation below and run
-;
-;     dune runtest --auto-promote
-;
-
 (rule
  (with-stdout-to
   dune.corrected
-  (run ocsigen-dune-rules gen-library --wrapped false my_lib)))
+  (run
+   ocsigen-dune-rules
+   gen-library
+   --wrapped
+   false
+   my_lib
+   --dune
+   %{dep:dune})))
 
-;
+; [ocsigen-dune-rules] Do not remove this line.
 ; Below this line, any changes will be overwritten.
+;
+; To update the rules below, modify the invocation of ocsigen-dune-rules above
+; and run:
+;
+;     dune runtest --auto-promote
 ;
 
 (rule

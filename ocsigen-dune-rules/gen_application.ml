@@ -87,11 +87,11 @@ let check_modules_rule ~name =
         ];
     ]
 
-let run name libraries preprocess wasm public_name =
+let run name libraries preprocess wasm dune_file public_name =
   let name = Option.value name ~default:public_name in
   Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
     ~client_libs:client_default_libs libraries preprocess;
-  Gen_utils.promote_rule ()
+  Gen_utils.gen_prelude ~dune_file
   @ [
       server_executable_stanza ~public_name ~name ~libraries ~preprocess;
       client_subdir_stanza ~name ~libraries ~preprocess ~wasm;
