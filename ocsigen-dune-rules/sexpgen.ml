@@ -32,7 +32,7 @@ let rec pp ppf = function
         else "@[<hv 1>(%a)@]"
       in
       fprintf ppf fmt _pp_list ts
-  | Atom s when String.exists need_escaping s -> fprintf ppf "%S" s
+  | Atom s when s = "" || String.exists need_escaping s -> fprintf ppf "%S" s
   | Atom s -> fprintf ppf "%s" s
   | Comment s -> List.iter (fprintf ppf ";%s@,") (String.split_on_char '\n' s)
   | Raw_sexp_lines l -> pp_print_list pp_print_string ppf l
