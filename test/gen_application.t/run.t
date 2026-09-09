@@ -40,11 +40,12 @@
    (action
     (diff dune dune.corrected)))
   
-  (executable
+  (library
    (public_name my_app)
    (name my_app)
-   (package my_app)
    (modes byte native)
+   (library_flags
+    (:standard -linkall))
    (preprocess
     (pps
      eliom.ppx.server
@@ -53,7 +54,7 @@
      --rpc-raw
      p1
      p3))
-   (libraries eliom.server ocsigenserver js_of_ocaml a c))
+   (libraries eliom.server a c))
   
   (subdir
    client
@@ -86,7 +87,7 @@
      --client
      %{dep:client/my_app.bc}
      --server
-     %{dep:my_app.bc})))
+     %{dep:my_app.cma})))
 
 Warns when passing a default library or preprocessor:
 
@@ -94,7 +95,6 @@ Warns when passing a default library or preprocessor:
   Error: client preprocess "js_of_ocaml-ppx" is already included by default.
   Error: server preprocess "eliom.ppx.server" is already included by default.
   Error: client library "js_of_ocaml" is already included by default.
-  Error: server library "js_of_ocaml" is already included by default.
   [1]
 
 The name can be changed:
@@ -117,18 +117,18 @@ The name can be changed:
   <  (name my_app)
   ---
   >  (name main)
-  36c43
+  37c44
   <   (name my_app)
   ---
   >   (name main)
-  62c69
+  63c70
   <    %{dep:client/my_app.bc}
   ---
   >    %{dep:client/main.bc}
-  64c71
-  <    %{dep:my_app.bc})))
+  65c72
+  <    %{dep:my_app.cma})))
   ---
-  >    %{dep:main.bc})))
+  >    %{dep:main.cma})))
   [1]
 
 Flags:
@@ -139,7 +139,7 @@ Flags:
   <   (run ocsigen-dune-rules gen-application my_app --dune %{dep:dune})))
   ---
   >   (run ocsigen-dune-rules gen-application --wasm my_app --dune %{dep:dune})))
-  37c37
+  38c38
   <   (modes js byte)
   ---
   >   (modes js wasm byte)

@@ -26,11 +26,12 @@
  (action
   (diff dune dune.corrected)))
 
-(executable
+(library
  (public_name my_app)
  (name my_app)
- (package my_app)
  (modes byte native)
+ (library_flags
+  (:standard -linkall))
  (preprocess
   (pps
    eliom.ppx.server
@@ -39,8 +40,6 @@
    --rpc-raw))
  (libraries
   eliom.server
-  ocsigenserver
-  js_of_ocaml
   ocsipersist-sqlite
   ocsigenserver.ext.staticmod
   my_lib.server))
@@ -76,4 +75,4 @@
    --client
    %{dep:client/my_app.bc}
    --server
-   %{dep:my_app.bc})))
+   %{dep:my_app.cma})))

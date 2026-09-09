@@ -1,19 +1,16 @@
 open Sexpgen
 
-let server_default_libs = [ "eliom.server"; "ocsigenserver"; "js_of_ocaml" ]
-let client_default_libs = [ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
-
 let server_executable_stanza ~public_name ~name ~libraries ~preprocess =
-  field "executable"
+  field "library"
     [
       field "public_name" [ atom public_name ];
       field "name" [ atom name ];
-      field "package" [ atom public_name ];
       field "modes" [ atom "byte"; atom "native" ];
+      field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
       field "preprocess"
         [ field "pps" (atoms (Gen_utils.server_pps preprocess)) ];
       field "libraries"
-        (atoms (server_default_libs @ libraries.Gen_utils.lib_server));
+        (atoms (Gen_utils.server_default_libs @ libraries.Gen_utils.lib_server));
     ]
 
 let client_executable_stanza ~name ~libraries ~preprocess ~wasm =
@@ -39,7 +36,7 @@ let client_executable_stanza ~name ~libraries ~preprocess ~wasm =
                ]);
         ];
       field "libraries"
-        (atoms (client_default_libs @ libraries.Gen_utils.lib_client));
+        (atoms (Gen_utils.client_default_libs @ libraries.Gen_utils.lib_client));
     ]
 
 let client_subdir_stanza ~name ~libraries ~preprocess ~wasm =
@@ -82,15 +79,15 @@ let check_modules_rule ~name =
               atom "--client";
               atomf "%%{dep:client/%s.bc}" name;
               atom "--server";
-              atomf "%%{dep:%s.bc}" name;
+              atomf "%%{dep:%s.cma}" name;
             ];
         ];
     ]
 
 let run name libraries preprocess wasm dune_file public_name =
   let name = Option.value name ~default:public_name in
-  Gen_utils.check_duplicated_deps ~server_libs:server_default_libs
-    ~client_libs:client_default_libs libraries preprocess;
+  Gen_utils.check_duplicated_deps ~server_libs:Gen_utils.server_default_libs
+    ~client_libs:Gen_utils.client_default_libs libraries preprocess;
   Gen_utils.gen_prelude ~dune_file
   @ [
       server_executable_stanza ~public_name ~name ~libraries ~preprocess;

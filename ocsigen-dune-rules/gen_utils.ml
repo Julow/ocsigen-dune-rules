@@ -12,6 +12,8 @@ let server_default_pps =
   [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "js_of_ocaml-ppx_deriving_json" ]
 
 let client_default_pps = [ "js_of_ocaml-ppx"; "js_of_ocaml-ppx_deriving_json" ]
+let server_default_libs = [ "eliom.server" ]
+let client_default_libs = [ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
 
 let server_pps preprocess =
   let rpc_raw_flag = if preprocess.rpc_raw then [ "--rpc-raw" ] else [] in
