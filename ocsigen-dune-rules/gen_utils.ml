@@ -45,10 +45,14 @@ let check_duplicated_deps ~server_libs ~client_libs libraries preprocess =
 let generated_start_marker = "; [ocsigen-dune-rules]"
 
 let preserve_prelude dune_file =
-  let lines = In_channel.with_open_text dune_file In_channel.input_lines in
-  Utils.list_take_while
-    (fun l -> not (String.starts_with ~prefix:generated_start_marker l))
-    lines
+  let rec loop acc inp =
+    match In_channel.input_line inp with
+    | Some l ->
+        if String.starts_with ~prefix:generated_start_marker l then acc
+        else loop (l :: acc) inp
+    | None -> acc
+  in
+  List.rev (In_channel.with_open_text dune_file (loop []))
 
 let gen_default_prelude () =
   let argv = List.tl (Array.to_list Sys.argv) in
