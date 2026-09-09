@@ -4,13 +4,6 @@
   $ diff dune dune.fmt
 
   $ cat dune
-  ;
-  ; This Dune file was generated with ocsigen-dune-rules.
-  ; To update it, modify the invocation below and run
-  ;
-  ;     dune runtest --auto-promote
-  ;
-  
   (rule
    (with-stdout-to
     dune.corrected
@@ -31,10 +24,17 @@
      p3
      --wrapped
      false
-     my_lib)))
+     my_lib
+     --dune
+     %{dep:dune})))
   
-  ;
+  ; [ocsigen-dune-rules] Do not remove this line.
   ; Below this line, any changes will be overwritten.
+  ;
+  ; To update the rules below, modify the invocation of ocsigen-dune-rules above
+  ; and run:
+  ;
+  ;     dune runtest --auto-promote
   ;
   
   (rule

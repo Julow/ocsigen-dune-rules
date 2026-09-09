@@ -4,13 +4,6 @@
   $ diff dune dune.fmt
 
   $ cat dune
-  ;
-  ; This Dune file was generated with ocsigen-dune-rules.
-  ; To update it, modify the invocation below and run
-  ;
-  ;     dune runtest --auto-promote
-  ;
-  
   (rule
    (with-stdout-to
     dune.corrected
@@ -29,10 +22,17 @@
      p2
      --preprocess
      p3
-     my_app)))
+     my_app
+     --dune
+     %{dep:dune})))
   
-  ;
+  ; [ocsigen-dune-rules] Do not remove this line.
   ; Below this line, any changes will be overwritten.
+  ;
+  ; To update the rules below, modify the invocation of ocsigen-dune-rules above
+  ; and run:
+  ;
+  ;     dune runtest --auto-promote
   ;
   
   (rule
@@ -102,23 +102,30 @@ The name can be changed:
   $ ocsigen-dune-rules gen-application my_app > dune.1
   $ ocsigen-dune-rules gen-application --name main my_app > dune.2
   $ diff dune.1 dune.2
-  11c11
-  <   (run ocsigen-dune-rules gen-application my_app)))
+  4c4,11
+  <   (run ocsigen-dune-rules gen-application my_app --dune %{dep:dune})))
   ---
-  >   (run ocsigen-dune-rules gen-application --name main my_app)))
-  24c24
+  >   (run
+  >    ocsigen-dune-rules
+  >    gen-application
+  >    --name
+  >    main
+  >    my_app
+  >    --dune
+  >    %{dep:dune})))
+  22c29
   <  (name my_app)
   ---
   >  (name main)
-  38c38
+  36c43
   <   (name my_app)
   ---
   >   (name main)
-  64c64
+  62c69
   <    %{dep:client/my_app.bc}
   ---
   >    %{dep:client/main.bc}
-  66c66
+  64c71
   <    %{dep:my_app.bc})))
   ---
   >    %{dep:main.bc})))
@@ -128,11 +135,11 @@ Flags:
 
   $ ocsigen-dune-rules gen-application --wasm my_app > dune.2
   $ diff dune.1 dune.2
-  11c11
-  <   (run ocsigen-dune-rules gen-application my_app)))
+  4c4
+  <   (run ocsigen-dune-rules gen-application my_app --dune %{dep:dune})))
   ---
-  >   (run ocsigen-dune-rules gen-application --wasm my_app)))
-  39c39
+  >   (run ocsigen-dune-rules gen-application --wasm my_app --dune %{dep:dune})))
+  37c37
   <   (modes js byte)
   ---
   >   (modes js wasm byte)

@@ -59,6 +59,11 @@ let preprocess_term =
         })
     $ arg_server $ arg_client $ arg_both $ arg_no_rpc_raw)
 
+let opt_dune =
+  let docv = "%{dep:dune}" in
+  let doc = "Path to the current Dune file. Used to keep hand-written rules." in
+  Arg.(value & opt (some string) None & info ~doc ~docv [ "dune" ])
+
 module Gen_client_modules = struct
   let run internal_prefix subdir server_objs_dir dir =
     let extra_ppx_args =
@@ -144,8 +149,8 @@ module Gen_library = struct
   let cmd =
     let term =
       Term.(
-        const Gen_library.run $ opt_public_name $ opt_wrapped $ libraries_term
-        $ preprocess_term $ arg_name)
+        const Gen_library.run $ opt_public_name $ opt_wrapped $ opt_dune
+        $ libraries_term $ preprocess_term $ arg_name)
     in
     let doc =
       "Generate Dune stanzas for a client/server Eliom library. The libraries \
@@ -176,7 +181,7 @@ module Gen_application = struct
     let term =
       Term.(
         const Gen_application.run $ opt_name $ libraries_term $ preprocess_term
-        $ opt_wasm $ arg_name)
+        $ opt_wasm $ opt_dune $ arg_name)
     in
     let doc =
       "Generate Dune stanzas for an Eliom application. The server side is \

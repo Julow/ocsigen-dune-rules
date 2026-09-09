@@ -40,26 +40,45 @@ let check_duplicated_deps ~server_libs ~client_libs libraries preprocess =
     ||| check "client preprocess" client_default_pps preprocess.pps_client
   then exit 1
 
-let promote_rule () =
+let generated_start_marker = "; [ocsigen-dune-rules]"
+
+let preserve_prelude dune_file =
+  let lines = In_channel.with_open_text dune_file In_channel.input_lines in
+  Utils.list_take_while
+    (fun l -> not (String.starts_with ~prefix:generated_start_marker l))
+    lines
+
+let gen_default_prelude () =
   let argv = List.tl (Array.to_list Sys.argv) in
+  field "rule"
+    [
+      field "with-stdout-to"
+        [
+          atom "dune.corrected";
+          field "run"
+            (atoms
+               (("ocsigen-dune-rules" :: argv) @ [ "--dune"; "%{dep:dune}" ]));
+        ];
+    ]
+
+(** Output the top part of the dune file by reading the current dune file. If
+    [--dune] is not passed, generate the rule calling ocsigen-dune-rules. *)
+let gen_prelude ~dune_file =
+  let prelude =
+    match dune_file with
+    | Some dune_file -> raw_sexp_lines (preserve_prelude dune_file)
+    | None -> gen_default_prelude ()
+  in
   [
+    prelude;
+    raw_sexp_lines [ generated_start_marker ^ " Do not remove this line." ];
     cmt
-      {|
- This Dune file was generated with ocsigen-dune-rules.
- To update it, modify the invocation below and run
+      {| Below this line, any changes will be overwritten.
+
+ To update the rules below, modify the invocation of ocsigen-dune-rules above
+ and run:
 
      dune runtest --auto-promote
-|};
-    field "rule"
-      [
-        field "with-stdout-to"
-          [
-            atom "dune.corrected";
-            field "run" (atoms ("ocsigen-dune-rules" :: argv));
-          ];
-      ];
-    cmt {|
- Below this line, any changes will be overwritten.
 |};
     field "rule"
       [
