@@ -75,4 +75,15 @@
    --client
    %{dep:client/my_app.bc}
    --server
-   %{dep:my_app.cma})))
+   %{dep:check_modules/main.bc})))
+
+(subdir
+ check_modules
+ (rule
+  (write-file main.ml ""))
+ (executable
+  (name main)
+  (modes byte)
+  (link_flags
+   (:standard -linkall))
+  (libraries my_app)))

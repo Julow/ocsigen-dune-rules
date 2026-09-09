@@ -66,23 +66,42 @@ let gen_client_modules_rule () =
         ];
     ]
 
-let check_modules_rule ~name =
-  field "rule"
-    [
-      field "alias" [ atom "runtest" ];
-      field "action"
-        [
-          field "run"
-            [
-              atom "ocsigen-dune-rules";
-              atom "check-modules";
-              atom "--client";
-              atomf "%%{dep:client/%s.bc}" name;
-              atom "--server";
-              atomf "%%{dep:%s.cma}" name;
-            ];
-        ];
-    ]
+(** Directory containing the bytecode executable used by [check-modules]. *)
+let check_modules_dir = "check_modules"
+
+let check_modules_rules ~name =
+  [
+    field "rule"
+      [
+        field "alias" [ atom "runtest" ];
+        field "action"
+          [
+            field "run"
+              [
+                atom "ocsigen-dune-rules";
+                atom "check-modules";
+                atom "--client";
+                atomf "%%{dep:client/%s.bc}" name;
+                atom "--server";
+                atomf "%%{dep:%s/main.bc}" check_modules_dir;
+              ];
+          ];
+      ];
+    (* Define a bytecode executable for the server side to compare it with the
+       client. *)
+    field "subdir"
+      [
+        atom check_modules_dir;
+        field "rule" [ field "write-file" [ atom "main.ml"; atom "" ] ];
+        field "executable"
+          [
+            field "name" [ atom "main" ];
+            field "modes" [ atom "byte" ];
+            field "link_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
+            field "libraries" [ atom name ];
+          ];
+      ];
+  ]
 
 let run name libraries preprocess wasm dune_file public_name =
   let name = Option.value name ~default:public_name in
@@ -93,6 +112,6 @@ let run name libraries preprocess wasm dune_file public_name =
       server_executable_stanza ~public_name ~name ~libraries ~preprocess;
       client_subdir_stanza ~name ~libraries ~preprocess ~wasm;
       gen_client_modules_rule ();
-      check_modules_rule ~name;
     ]
+  @ check_modules_rules ~name
   |> pp_list Format.std_formatter

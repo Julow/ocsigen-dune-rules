@@ -87,7 +87,18 @@
      --client
      %{dep:client/my_app.bc}
      --server
-     %{dep:my_app.cma})))
+     %{dep:check_modules/main.bc})))
+  
+  (subdir
+   check_modules
+   (rule
+    (write-file main.ml ""))
+   (executable
+    (name main)
+    (modes byte)
+    (link_flags
+     (:standard -linkall))
+    (libraries my_app)))
 
 Warns when passing a default library or preprocessor:
 
@@ -125,10 +136,10 @@ The name can be changed:
   <    %{dep:client/my_app.bc}
   ---
   >    %{dep:client/main.bc}
-  65c72
-  <    %{dep:my_app.cma})))
+  76c83
+  <   (libraries my_app)))
   ---
-  >    %{dep:main.cma})))
+  >   (libraries main)))
   [1]
 
 Flags:
