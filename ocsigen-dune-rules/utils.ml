@@ -11,11 +11,3 @@ let list_dir p =
 
 (** Do not raise. *)
 let is_dir p = try Sys.is_directory p with Sys_error _ -> false
-
-(* From OCaml stdlib *)
-let list_take_while p l =
-  let[@tail_mod_cons] rec aux = function
-    | x :: l when p x -> x :: aux l
-    | _rest -> []
-  in
-  aux l
