@@ -68,10 +68,23 @@
     (wrapped false)
     (library_flags
      (:standard -linkall))
-    (preprocess
-     (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json p2 p3))
     (libraries eliom.client js_of_ocaml js_of_ocaml-lwt b c))
    (dynamic_include ../dune.client))
+  
+  (subdir
+   client/ppx
+   (rule
+    (write-file main.ml "let () = Ppxlib.Driver.standalone ()"))
+   (executable
+    (name main)
+    (libraries
+     ppxlib
+     eliom.ppx.client
+     ocsigen-ppx-rpc
+     js_of_ocaml-ppx
+     js_of_ocaml-ppx_deriving_json
+     p2
+     p3)))
   
   (rule
    (deps
@@ -86,7 +99,6 @@ Remove the --rpc-raw flag:
 
   $ ocsigen-dune-rules gen-library --no-rpc-raw --wrapped false my_lib | grep pps
     (pps eliom.ppx.server ocsigen-ppx-rpc js_of_ocaml-ppx_deriving_json))
-     (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
 
 Warns when passing a default library or preprocessor:
 

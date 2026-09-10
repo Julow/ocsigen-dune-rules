@@ -48,10 +48,21 @@
   (wrapped false)
   (library_flags
    (:standard -linkall))
-  (preprocess
-   (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json))
   (libraries eliom.client js_of_ocaml js_of_ocaml-lwt))
  (dynamic_include ../dune.client))
+
+(subdir
+ client/ppx
+ (rule
+  (write-file main.ml "let () = Ppxlib.Driver.standalone ()"))
+ (executable
+  (name main)
+  (libraries
+   ppxlib
+   eliom.ppx.client
+   ocsigen-ppx-rpc
+   js_of_ocaml-ppx
+   js_of_ocaml-ppx_deriving_json)))
 
 (rule
  (deps

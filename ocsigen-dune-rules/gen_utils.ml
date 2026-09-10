@@ -11,7 +11,14 @@ type preprocess = {
 let server_default_pps =
   [ "eliom.ppx.server"; "ocsigen-ppx-rpc"; "js_of_ocaml-ppx_deriving_json" ]
 
-let client_default_pps = [ "js_of_ocaml-ppx"; "js_of_ocaml-ppx_deriving_json" ]
+let client_default_pps =
+  [
+    "eliom.ppx.client";
+    "ocsigen-ppx-rpc";
+    "js_of_ocaml-ppx";
+    "js_of_ocaml-ppx_deriving_json";
+  ]
+
 let server_default_libs = [ "eliom.server" ]
 let client_default_libs = [ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
 
@@ -20,6 +27,48 @@ let server_pps preprocess =
   (server_default_pps @ rpc_raw_flag) @ preprocess.pps_server
 
 let client_pps preprocess = client_default_pps @ preprocess.pps_client
+
+(** A standalone Ppxlib driver linking every client PPX. Running them all in a
+    single driver is what allows Ppxlib to order the transformations. *)
+let ppx_client_stanza preprocess =
+  field "subdir"
+    [
+      atom "client/ppx";
+      field "rule"
+        [
+          field "write-file"
+            [ atom "main.ml"; atom "let () = Ppxlib.Driver.standalone ()" ];
+        ];
+      field "executable"
+        [
+          field "name" [ atom "main" ];
+          field "libraries" (atoms ("ppxlib" :: client_pps preprocess));
+        ];
+    ]
+
+(** Stanzas building the client modules: the PPX driver and the rule generating
+    the [dune.client] file, which contains a rule per module. *)
+let gen_client_modules_stanzas preprocess =
+  [
+    ppx_client_stanza preprocess;
+    field "rule"
+      [
+        field "deps"
+          [
+            field "glob_files" [ atom "*.eliom" ];
+            field "glob_files" [ atom "*.eliomi" ];
+          ];
+        field "action"
+          [
+            field "with-stdout-to"
+              [
+                atom "dune.client";
+                field "run"
+                  (atoms [ "ocsigen-dune-rules"; "gen-client-modules"; "." ]);
+              ];
+          ];
+      ];
+  ]
 
 (** Generate a warning when a default library or preprocessor is passed. *)
 let check_duplicated_deps ~server_libs ~client_libs libraries preprocess =
