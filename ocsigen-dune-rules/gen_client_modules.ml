@@ -1,7 +1,12 @@
 let spf = Printf.sprintf
 let dep f = spf "%%{dep:%s}" f
+let default_ppx_args = [ "--rpc-raw" ]
 
-let gen_eliom_ppx_rule ~target ~input ~args =
+let ppx_exe ~subdir_name =
+  let prefix = if subdir_name = "" then "" else "../" in
+  spf "%%{exe:%sppx/main.exe}" prefix
+
+let gen_eliom_ppx_rule ~ppx_exe ~target ~input ~args =
   (* The [chdir] instruction is needed to obtain the correct path for
      [-loc-filename] to be used in error messages. *)
   Sexpgen.
@@ -16,12 +21,8 @@ let gen_eliom_ppx_rule ~target ~input ~args =
                   atom "%{workspace_root}";
                   field "run"
                     (atoms
-                       [
-                         "ocsigen-ppx-client";
-                         "-as-pp";
-                         "-loc-filename";
-                         dep input;
-                       ]
+                       ([ ppx_exe; "-as-pp"; "-loc-filename"; dep input ]
+                       @ default_ppx_args)
                     @ atoms args
                     @ atoms [ dep input ]);
                 ];
@@ -82,7 +83,8 @@ let gen_rule_for_module ~extra_ppx_args ~subdir_name ~server_objs_dir
         [ "--impl"; "-server-cmo"; server_cmo ]
       else [ "--intf" ]
     in
-    with_subdir_opt ~subdir_name (gen_eliom_ppx_rule ~target ~input ~args)
+    with_subdir_opt ~subdir_name
+      (gen_eliom_ppx_rule ~ppx_exe:(ppx_exe ~subdir_name) ~target ~input ~args)
 
 (** Relative path to server modules from the generated client modules. *)
 let server_rel_prefix = ".."

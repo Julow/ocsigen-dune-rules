@@ -80,7 +80,7 @@ module Gen_client_modules = struct
 
   let arg_internal_prefix =
     let doc =
-      "Pass [-internal-prefix $(docv)] to ocsigen-ppx-client.  Tells the \
+      "Pass [-internal-prefix $(docv)] to the client PPX driver.  Tells the \
        client PPX to strip the [$(docv)__] wrapper prefix from the type paths \
        it reads in the server [.cmo] files, so that the generated client code \
        references the user-visible names instead of the internal ones.  \

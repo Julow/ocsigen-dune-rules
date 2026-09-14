@@ -13,14 +13,12 @@ let server_executable_stanza ~public_name ~name ~libraries ~preprocess =
         (atoms (Gen_utils.server_default_libs @ libraries.Gen_utils.lib_server));
     ]
 
-let client_executable_stanza ~name ~libraries ~preprocess ~wasm =
+let client_executable_stanza ~name ~libraries ~wasm =
   let wasm = if wasm then [ atom "wasm" ] else [] in
   field "executable"
     [
       field "name" [ atom name ];
       field "modes" ([ atom "js" ] @ wasm @ [ atom "byte" ]);
-      field "preprocess"
-        [ field "pps" (atoms (Gen_utils.client_pps preprocess)) ];
       field "js_of_ocaml"
         [
           field "build_runtime_flags"
@@ -39,31 +37,12 @@ let client_executable_stanza ~name ~libraries ~preprocess ~wasm =
         (atoms (Gen_utils.client_default_libs @ libraries.Gen_utils.lib_client));
     ]
 
-let client_subdir_stanza ~name ~libraries ~preprocess ~wasm =
+let client_subdir_stanza ~name ~libraries ~wasm =
   field "subdir"
     [
       atom "client";
-      client_executable_stanza ~name ~libraries ~preprocess ~wasm;
+      client_executable_stanza ~name ~libraries ~wasm;
       field "dynamic_include" [ atom "../dune.client" ];
-    ]
-
-let gen_client_modules_rule () =
-  field "rule"
-    [
-      field "deps"
-        [
-          field "glob_files" [ atom "*.eliom" ];
-          field "glob_files" [ atom "*.eliomi" ];
-        ];
-      field "action"
-        [
-          field "with-stdout-to"
-            [
-              atom "dune.client";
-              field "run"
-                (atoms [ "ocsigen-dune-rules"; "gen-client-modules"; "." ]);
-            ];
-        ];
     ]
 
 (** Directory containing the bytecode executable used by [check-modules]. *)
@@ -110,8 +89,8 @@ let run name libraries preprocess wasm dune_file public_name =
   Gen_utils.gen_prelude ~dune_file
   @ [
       server_executable_stanza ~public_name ~name ~libraries ~preprocess;
-      client_subdir_stanza ~name ~libraries ~preprocess ~wasm;
-      gen_client_modules_rule ();
+      client_subdir_stanza ~name ~libraries ~wasm;
     ]
+  @ Gen_utils.gen_client_modules_stanzas preprocess
   @ check_modules_rules ~name
   |> pp_list Format.std_formatter

@@ -1,7 +1,3 @@
-Default invocation: emit one rule per .eliom/.eliomi, using
-%{cmo:...} to locate the server-side .cmo and %{dep:...} for the
-input file.
-
   $ ocsigen-dune-rules gen-client-modules .
   (rule
    (with-stdout-to
@@ -9,10 +5,11 @@ input file.
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
+      --rpc-raw
       --impl
       -server-cmo
       %{cmo:../a}
@@ -24,10 +21,11 @@ input file.
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
+      --rpc-raw
       --impl
       -server-cmo
       %{cmo:../b}
@@ -39,16 +37,17 @@ input file.
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
+      --rpc-raw
       --intf
       %{dep:../b.eliomi}))))
 
---internal-prefix forwards [-internal-prefix PREFIX] to
-ocsigen-ppx-client.  The PREFIX is inserted before the existing
-arguments of every rule.
+--internal-prefix forwards [-internal-prefix PREFIX] to the PPX
+driver.  The PREFIX is inserted before the existing arguments of
+every rule.
 
   $ ocsigen-dune-rules gen-client-modules --internal-prefix Os .
   (rule
@@ -57,10 +56,11 @@ arguments of every rule.
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
+      --rpc-raw
       -internal-prefix
       Os
       --impl
@@ -74,10 +74,11 @@ arguments of every rule.
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
+      --rpc-raw
       -internal-prefix
       Os
       --impl
@@ -91,10 +92,11 @@ arguments of every rule.
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
+      --rpc-raw
       -internal-prefix
       Os
       --intf
@@ -103,7 +105,8 @@ arguments of every rule.
 --subdir DIR wraps each generated rule in a (subdir DIR ...) stanza
 so the preprocessed files land in DIR/.  The input paths still refer
 to the original location relative to the workspace root, thanks to
-the chdir wrapper.
+the chdir wrapper.  The path to the PPX driver gains a ../ to escape
+the (subdir ...) context.
 
   $ ocsigen-dune-rules gen-client-modules --subdir Os .
   (subdir
@@ -114,10 +117,11 @@ the chdir wrapper.
      (chdir
       %{workspace_root}
       (run
-       ocsigen-ppx-client
+       %{exe:../ppx/main.exe}
        -as-pp
        -loc-filename
        %{dep:../a.eliom}
+       --rpc-raw
        --impl
        -server-cmo
        %{cmo:../a}
@@ -131,10 +135,11 @@ the chdir wrapper.
      (chdir
       %{workspace_root}
       (run
-       ocsigen-ppx-client
+       %{exe:../ppx/main.exe}
        -as-pp
        -loc-filename
        %{dep:../b.eliom}
+       --rpc-raw
        --impl
        -server-cmo
        %{cmo:../b}
@@ -148,10 +153,11 @@ the chdir wrapper.
      (chdir
       %{workspace_root}
       (run
-       ocsigen-ppx-client
+       %{exe:../ppx/main.exe}
        -as-pp
        -loc-filename
        %{dep:../b.eliomi}
+       --rpc-raw
        --intf
        %{dep:../b.eliomi})))))
 
@@ -166,10 +172,11 @@ unambiguously.  When used without --subdir the path has no prefix:
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
+      --rpc-raw
       --impl
       -server-cmo
       %{dep:../.foo.objs/byte/A.cmo}
@@ -181,10 +188,11 @@ unambiguously.  When used without --subdir the path has no prefix:
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
+      --rpc-raw
       --impl
       -server-cmo
       %{dep:../.foo.objs/byte/B.cmo}
@@ -196,10 +204,11 @@ unambiguously.  When used without --subdir the path has no prefix:
     (chdir
      %{workspace_root}
      (run
-      ocsigen-ppx-client
+      %{exe:ppx/main.exe}
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
+      --rpc-raw
       --intf
       %{dep:../b.eliomi}))))
 
@@ -218,10 +227,11 @@ context.
      (chdir
       %{workspace_root}
       (run
-       ocsigen-ppx-client
+       %{exe:../ppx/main.exe}
        -as-pp
        -loc-filename
        %{dep:../a.eliom}
+       --rpc-raw
        --impl
        -server-cmo
        %{dep:../.foo.objs/byte/os__A.cmo}
@@ -235,10 +245,11 @@ context.
      (chdir
       %{workspace_root}
       (run
-       ocsigen-ppx-client
+       %{exe:../ppx/main.exe}
        -as-pp
        -loc-filename
        %{dep:../b.eliom}
+       --rpc-raw
        --impl
        -server-cmo
        %{dep:../.foo.objs/byte/os__B.cmo}
@@ -252,9 +263,10 @@ context.
      (chdir
       %{workspace_root}
       (run
-       ocsigen-ppx-client
+       %{exe:../ppx/main.exe}
        -as-pp
        -loc-filename
        %{dep:../b.eliomi}
+       --rpc-raw
        --intf
        %{dep:../b.eliomi})))))

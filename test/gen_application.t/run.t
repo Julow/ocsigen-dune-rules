@@ -61,13 +61,26 @@
    (executable
     (name my_app)
     (modes js byte)
-    (preprocess
-     (pps js_of_ocaml-ppx js_of_ocaml-ppx_deriving_json p2 p3))
     (js_of_ocaml
      (build_runtime_flags :standard --enable use-js-string)
      (flags :standard --enable with-js-error --enable use-js-string))
     (libraries eliom.client js_of_ocaml js_of_ocaml-lwt b c))
    (dynamic_include ../dune.client))
+  
+  (subdir
+   client/ppx
+   (rule
+    (write-file main.ml "let () = Ppxlib.Driver.standalone ()"))
+   (executable
+    (name main)
+    (libraries
+     ppxlib
+     eliom.ppx.client
+     ocsigen-ppx-rpc
+     js_of_ocaml-ppx
+     js_of_ocaml-ppx_deriving_json
+     p2
+     p3)))
   
   (rule
    (deps
@@ -132,11 +145,11 @@ The name can be changed:
   <   (name my_app)
   ---
   >   (name main)
-  63c70
+  74c81
   <    %{dep:client/my_app.bc}
   ---
   >    %{dep:client/main.bc}
-  76c83
+  87c94
   <   (libraries my_app)))
   ---
   >   (libraries main)))
