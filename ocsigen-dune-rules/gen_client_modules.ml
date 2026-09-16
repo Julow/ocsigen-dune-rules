@@ -99,8 +99,7 @@ let gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir fname =
         ~server_rel_prefix ~impl:false fname
   | _ -> []
 
-let run ?(extra_ppx_args = []) ?(subdir_name = "") ?(server_objs_dir = "") files
-    =
+let run ~extra_ppx_args ?(subdir_name = "") ?(server_objs_dir = "") files =
   List.concat_map
     (gen_rule_for_file ~extra_ppx_args ~subdir_name ~server_objs_dir)
     files

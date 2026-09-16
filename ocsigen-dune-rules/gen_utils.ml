@@ -4,8 +4,8 @@ type libraries = { lib_server : string list; lib_client : string list }
 
 type preprocess = {
   pps_server : string list;
-  pps_client : string list;
-  rpc_raw : bool;
+  pps_client_libs : string list;
+  pps_client_args : string list;
 }
 
 let server_default_pps =
@@ -22,11 +22,45 @@ let client_default_pps =
 let server_default_libs = [ "eliom.server" ]
 let client_default_libs = [ "eliom.client"; "js_of_ocaml"; "js_of_ocaml-lwt" ]
 
-let server_pps preprocess =
-  let rpc_raw_flag = if preprocess.rpc_raw then [ "--rpc-raw" ] else [] in
-  (server_default_pps @ rpc_raw_flag) @ preprocess.pps_server
+(** Generate a warning when a default library or preprocessor is passed. *)
+let check_duplicated what defaults items =
+  List.fold_left
+    (fun acc item ->
+      if List.mem item defaults then (
+        Printf.eprintf "Error: %s %S is already included by default.\n" what
+          item;
+        true)
+      else acc)
+    false items
 
-let client_pps preprocess = client_default_pps @ preprocess.pps_client
+(** non short-circuiting to print all the errors at once. *)
+let ( ||| ) = ( || )
+
+let exit_if b = if b then exit 1
+
+(** Compute the actual client and server preprocess from CLI. *)
+let make_preprocess ~server ~client ~both ~no_rpc_raw =
+  let rpc_raw_flag = if no_rpc_raw then [] else [ "--rpc-raw" ] in
+  (* Split at the [--] argument. *)
+  let rec split_pps_args acc = function
+    | [] -> (List.rev acc, [])
+    | "--" :: args -> (List.rev acc, args)
+    | lib :: tl -> split_pps_args (lib :: acc) tl
+  in
+  let client_libs, client_args = split_pps_args [] client in
+  let both_libs, both_args = split_pps_args [] both in
+  exit_if
+    (check_duplicated "server preprocess" server_default_pps server
+    ||| check_duplicated "server preprocess (use --client-preprocess)"
+          server_default_pps both
+    ||| check_duplicated "client preprocess" client_default_pps client
+    ||| check_duplicated "client preprocess (use --server-preprocess)"
+          client_default_pps both);
+  {
+    pps_server = server_default_pps @ rpc_raw_flag @ server @ both;
+    pps_client_libs = client_default_pps @ client_libs @ both_libs;
+    pps_client_args = client_args @ both_args;
+  }
 
 (** A standalone Ppxlib driver linking every client PPX. Running them all in a
     single driver is what allows Ppxlib to order the transformations. *)
@@ -42,13 +76,16 @@ let ppx_client_stanza preprocess =
       field "executable"
         [
           field "name" [ atom "main" ];
-          field "libraries" (atoms ("ppxlib" :: client_pps preprocess));
+          field "libraries" (atoms ("ppxlib" :: preprocess.pps_client_libs));
         ];
     ]
 
 (** Stanzas building the client modules: the PPX driver and the rule generating
     the [dune.client] file, which contains a rule per module. *)
 let gen_client_modules_stanzas preprocess =
+  let ppx_args =
+    match preprocess.pps_client_args with [] -> [] | args -> "--" :: args
+  in
   [
     ppx_client_stanza preprocess;
     field "rule"
@@ -64,32 +101,19 @@ let gen_client_modules_stanzas preprocess =
               [
                 atom "dune.client";
                 field "run"
-                  (atoms [ "ocsigen-dune-rules"; "gen-client-modules"; "." ]);
+                  (atoms
+                     ([ "ocsigen-dune-rules"; "gen-client-modules"; "." ]
+                     @ ppx_args));
               ];
           ];
       ];
   ]
 
-(** Generate a warning when a default library or preprocessor is passed. *)
-let check_duplicated_deps ~server_libs ~client_libs libraries preprocess =
-  (* non short-circuiting to print all the errors at once. *)
-  let ( ||| ) = ( || ) in
-  let check what defaults items =
-    List.fold_left
-      (fun acc item ->
-        if List.mem item defaults then (
-          Printf.eprintf "Error: %s %S is already included by default.\n" what
-            item;
-          true)
-        else acc)
-      false items
-  in
-  if
-    check "server library" server_libs libraries.lib_server
-    ||| check "client library" client_libs libraries.lib_client
-    ||| check "server preprocess" server_default_pps preprocess.pps_server
-    ||| check "client preprocess" client_default_pps preprocess.pps_client
-  then exit 1
+(** Generate a warning when a default library is passed. *)
+let check_duplicated_deps ~server_libs ~client_libs libraries =
+  exit_if
+    (check_duplicated "server library" server_libs libraries.lib_server
+    ||| check_duplicated "client library" client_libs libraries.lib_client)
 
 let generated_start_marker = "; [ocsigen-dune-rules]"
 

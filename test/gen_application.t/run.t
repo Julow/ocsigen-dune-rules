@@ -115,10 +115,12 @@
 
 Warns when passing a default library or preprocessor:
 
-  $ ocsigen-dune-rules gen-application --libraries js_of_ocaml --server-preprocess eliom.ppx.server --client-preprocess js_of_ocaml-ppx my_app >/dev/null
+  $ ocsigen-dune-rules gen-application --libraries js_of_ocaml my_app >/dev/null
+  Error: client library "js_of_ocaml" is already included by default.
+  [1]
+  $ ocsigen-dune-rules gen-application --server-preprocess eliom.ppx.server --client-preprocess js_of_ocaml-ppx my_app >/dev/null
   Error: client preprocess "js_of_ocaml-ppx" is already included by default.
   Error: server preprocess "eliom.ppx.server" is already included by default.
-  Error: client library "js_of_ocaml" is already included by default.
   [1]
 
 The name can be changed:

@@ -270,3 +270,15 @@ context.
        --rpc-raw
        --intf
        %{dep:../b.eliomi})))))
+
+PPX arguments are added after '--':
+
+  $ ocsigen-dune-rules gen-client-modules . -- --default-module I18n | grep -A 1 -- '--default-module'
+      --default-module
+      I18n
+  --
+      --default-module
+      I18n
+  --
+      --default-module
+      I18n
