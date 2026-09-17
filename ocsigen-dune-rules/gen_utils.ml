@@ -59,7 +59,7 @@ let make_preprocess ~server ~client ~both ~no_rpc_raw =
   {
     pps_server = server_default_pps @ rpc_raw_flag @ server @ both;
     pps_client_libs = client_default_pps @ client_libs @ both_libs;
-    pps_client_args = client_args @ both_args;
+    pps_client_args = rpc_raw_flag @ client_args @ both_args;
   }
 
 (** A standalone Ppxlib driver linking every client PPX. Running them all in a

@@ -1,6 +1,5 @@
 let spf = Printf.sprintf
 let dep f = spf "%%{dep:%s}" f
-let default_ppx_args = [ "--rpc-raw" ]
 
 let ppx_exe ~subdir_name =
   let prefix = if subdir_name = "" then "" else "../" in
@@ -20,9 +19,7 @@ let gen_eliom_ppx_rule ~ppx_exe ~target ~input ~args =
                 [
                   atom "%{workspace_root}";
                   field "run"
-                    (atoms
-                       ([ ppx_exe; "-as-pp"; "-loc-filename"; dep input ]
-                       @ default_ppx_args)
+                    (atoms [ ppx_exe; "-as-pp"; "-loc-filename"; dep input ]
                     @ atoms args
                     @ atoms [ dep input ]);
                 ];

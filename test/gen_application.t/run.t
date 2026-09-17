@@ -89,7 +89,7 @@
    (action
     (with-stdout-to
      dune.client
-     (run ocsigen-dune-rules gen-client-modules .))))
+     (run ocsigen-dune-rules gen-client-modules . -- --rpc-raw))))
   
   (rule
    (alias runtest)

@@ -27,12 +27,21 @@ Arguments passed to PPXes are handled specifically.
      ocsigen-i18n)))
   
 
-  $ grep -A 1 gen-client-modules dune
-     (run ocsigen-dune-rules gen-client-modules . -- --default-module I18n))))
-  
+  $ grep -A 5 gen-client-modules dune
+      gen-client-modules
+      .
+      --
+      --rpc-raw
+      --default-module
+      I18n))))
 
-  $ ocsigen-dune-rules gen-library --wrapped false --client-preprocess ocsigen-i18n,--,--default-module,I18n my_lib | grep gen-client-modules
-     (run ocsigen-dune-rules gen-client-modules . -- --default-module I18n))))
+  $ ocsigen-dune-rules gen-library --wrapped false --client-preprocess ocsigen-i18n,--,--default-module,I18n my_lib | grep -A 5 gen-client-modules
+      gen-client-modules
+      .
+      --
+      --rpc-raw
+      --default-module
+      I18n))))
 
   $ ocsigen-dune-rules gen-library --wrapped false --server-preprocess ocsigen-i18n,--,--default-module,I18n my_lib | grep gen-client-modules
-     (run ocsigen-dune-rules gen-client-modules .))))
+     (run ocsigen-dune-rules gen-client-modules . -- --rpc-raw))))

@@ -9,7 +9,6 @@
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
-      --rpc-raw
       --impl
       -server-cmo
       %{cmo:../a}
@@ -25,7 +24,6 @@
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
-      --rpc-raw
       --impl
       -server-cmo
       %{cmo:../b}
@@ -41,7 +39,6 @@
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
-      --rpc-raw
       --intf
       %{dep:../b.eliomi}))))
 
@@ -60,7 +57,6 @@ every rule.
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
-      --rpc-raw
       -internal-prefix
       Os
       --impl
@@ -78,7 +74,6 @@ every rule.
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
-      --rpc-raw
       -internal-prefix
       Os
       --impl
@@ -96,7 +91,6 @@ every rule.
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
-      --rpc-raw
       -internal-prefix
       Os
       --intf
@@ -121,7 +115,6 @@ the (subdir ...) context.
        -as-pp
        -loc-filename
        %{dep:../a.eliom}
-       --rpc-raw
        --impl
        -server-cmo
        %{cmo:../a}
@@ -139,7 +132,6 @@ the (subdir ...) context.
        -as-pp
        -loc-filename
        %{dep:../b.eliom}
-       --rpc-raw
        --impl
        -server-cmo
        %{cmo:../b}
@@ -157,7 +149,6 @@ the (subdir ...) context.
        -as-pp
        -loc-filename
        %{dep:../b.eliomi}
-       --rpc-raw
        --intf
        %{dep:../b.eliomi})))))
 
@@ -176,7 +167,6 @@ unambiguously.  When used without --subdir the path has no prefix:
       -as-pp
       -loc-filename
       %{dep:../a.eliom}
-      --rpc-raw
       --impl
       -server-cmo
       %{dep:../.foo.objs/byte/A.cmo}
@@ -192,7 +182,6 @@ unambiguously.  When used without --subdir the path has no prefix:
       -as-pp
       -loc-filename
       %{dep:../b.eliom}
-      --rpc-raw
       --impl
       -server-cmo
       %{dep:../.foo.objs/byte/B.cmo}
@@ -208,7 +197,6 @@ unambiguously.  When used without --subdir the path has no prefix:
       -as-pp
       -loc-filename
       %{dep:../b.eliomi}
-      --rpc-raw
       --intf
       %{dep:../b.eliomi}))))
 
@@ -231,7 +219,6 @@ context.
        -as-pp
        -loc-filename
        %{dep:../a.eliom}
-       --rpc-raw
        --impl
        -server-cmo
        %{dep:../.foo.objs/byte/os__A.cmo}
@@ -249,7 +236,6 @@ context.
        -as-pp
        -loc-filename
        %{dep:../b.eliom}
-       --rpc-raw
        --impl
        -server-cmo
        %{dep:../.foo.objs/byte/os__B.cmo}
@@ -267,7 +253,6 @@ context.
        -as-pp
        -loc-filename
        %{dep:../b.eliomi}
-       --rpc-raw
        --intf
        %{dep:../b.eliomi})))))
 
