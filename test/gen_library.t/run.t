@@ -103,7 +103,7 @@ Remove the --rpc-raw flag:
 Warns when passing a default library or preprocessor:
 
   $ ocsigen-dune-rules gen-library --server-libraries eliom.server --libraries js_of_ocaml --wrapped false my_lib >/dev/null
-  Error: client library "js_of_ocaml" is already included by default.
+  Error: client library (use --server-libraries) "js_of_ocaml" is already included by default.
   Error: server library "eliom.server" is already included by default.
   [1]
   $ ocsigen-dune-rules gen-library --server-preprocess eliom.ppx.server --client-preprocess js_of_ocaml-ppx --wrapped false my_lib >/dev/null

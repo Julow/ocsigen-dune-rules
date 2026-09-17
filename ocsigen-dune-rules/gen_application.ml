@@ -8,8 +8,7 @@ let server_executable_stanza ~public_name ~name ~libraries ~preprocess =
       field "modes" [ atom "byte"; atom "native" ];
       field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
       field "preprocess" [ field "pps" (atoms preprocess.Gen_utils.pps_server) ];
-      field "libraries"
-        (atoms (Gen_utils.server_default_libs @ libraries.Gen_utils.lib_server));
+      field "libraries" (atoms libraries.Gen_utils.lib_server);
     ]
 
 let client_executable_stanza ~name ~libraries ~wasm =
@@ -32,8 +31,7 @@ let client_executable_stanza ~name ~libraries ~wasm =
                  "use-js-string";
                ]);
         ];
-      field "libraries"
-        (atoms (Gen_utils.client_default_libs @ libraries.Gen_utils.lib_client));
+      field "libraries" (atoms libraries.Gen_utils.lib_client);
     ]
 
 let client_subdir_stanza ~name ~libraries ~wasm =
@@ -83,8 +81,6 @@ let check_modules_rules ~name =
 
 let run name libraries preprocess wasm dune_file public_name =
   let name = Option.value name ~default:public_name in
-  Gen_utils.check_duplicated_deps ~server_libs:Gen_utils.server_default_libs
-    ~client_libs:Gen_utils.client_default_libs libraries;
   Gen_utils.gen_prelude ~dune_file
   @ [
       server_executable_stanza ~public_name ~name ~libraries ~preprocess;

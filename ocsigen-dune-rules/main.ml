@@ -25,11 +25,7 @@ let libraries_term =
   in
   Term.(
     const (fun server client both eliom ->
-        let eliom suffix = List.map (fun l -> l ^ suffix) eliom in
-        {
-          Gen_utils.lib_server = server @ both @ eliom ".server";
-          lib_client = client @ both @ eliom ".client";
-        })
+        Gen_utils.make_libraries ~server ~client ~both ~eliom)
     $ arg_server $ arg_client $ arg_both $ arg_eliom)
 
 let preprocess_term =

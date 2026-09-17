@@ -38,7 +38,21 @@ let ( ||| ) = ( || )
 
 let exit_if b = if b then exit 1
 
-(** Compute the actual client and server preprocess from CLI. *)
+let make_libraries ~server ~client ~both ~eliom =
+  exit_if
+    (check_duplicated "server library" server_default_libs server
+    ||| check_duplicated "server library (use --client-libraries)"
+          server_default_libs both
+    ||| check_duplicated "client library" client_default_libs client
+    ||| check_duplicated "client library (use --server-libraries)"
+          client_default_libs both
+    ||| check_duplicated "eliom library" [ "eliom" ] eliom);
+  let eliom suffix = List.map (fun l -> l ^ suffix) eliom in
+  {
+    lib_server = server_default_libs @ server @ both @ eliom ".server";
+    lib_client = client_default_libs @ client @ both @ eliom ".client";
+  }
+
 let make_preprocess ~server ~client ~both ~no_rpc_raw =
   let rpc_raw_flag = if no_rpc_raw then [] else [ "--rpc-raw" ] in
   (* Split at the [--] argument. *)
@@ -108,12 +122,6 @@ let gen_client_modules_stanzas preprocess =
           ];
       ];
   ]
-
-(** Generate a warning when a default library is passed. *)
-let check_duplicated_deps ~server_libs ~client_libs libraries =
-  exit_if
-    (check_duplicated "server library" server_libs libraries.lib_server
-    ||| check_duplicated "client library" client_libs libraries.lib_client)
 
 let generated_start_marker = "; [ocsigen-dune-rules]"
 
