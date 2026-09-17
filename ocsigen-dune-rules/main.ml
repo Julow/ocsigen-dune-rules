@@ -25,11 +25,7 @@ let libraries_term =
   in
   Term.(
     const (fun server client both eliom ->
-        let eliom suffix = List.map (fun l -> l ^ suffix) eliom in
-        {
-          Gen_utils.lib_server = server @ both @ eliom ".server";
-          lib_client = client @ both @ eliom ".client";
-        })
+        Gen_utils.make_libraries ~server ~client ~both ~eliom)
     $ arg_server $ arg_client $ arg_both $ arg_eliom)
 
 let preprocess_term =
@@ -52,11 +48,7 @@ let preprocess_term =
   in
   Term.(
     const (fun server client both no_rpc_raw ->
-        {
-          Gen_utils.pps_server = server @ both;
-          pps_client = client @ both;
-          rpc_raw = not no_rpc_raw;
-        })
+        Gen_utils.make_preprocess ~server ~client ~both ~no_rpc_raw)
     $ arg_server $ arg_client $ arg_both $ arg_no_rpc_raw)
 
 let opt_dune =
@@ -65,13 +57,16 @@ let opt_dune =
   Arg.(value & opt (some string) None & info ~doc ~docv [ "dune" ])
 
 module Gen_client_modules = struct
-  let run internal_prefix subdir server_objs_dir dir =
-    let extra_ppx_args =
-      Option.map (fun p -> [ "-internal-prefix"; p ]) internal_prefix
+  let run internal_prefix subdir server_objs_dir dir ppx_args =
+    let internal_prefix_args =
+      match internal_prefix with
+      | Some p -> [ "-internal-prefix"; p ]
+      | None -> []
     in
+    let extra_ppx_args = internal_prefix_args @ ppx_args in
     let files = Utils.list_dir dir in
     let files = List.filter (Fun.negate Utils.is_dir) files in
-    Gen_client_modules.run ?extra_ppx_args ?subdir_name:subdir ?server_objs_dir
+    Gen_client_modules.run ~extra_ppx_args ?subdir_name:subdir ?server_objs_dir
       files
 
   let arg_dir =
@@ -116,11 +111,15 @@ module Gen_client_modules = struct
       & opt (some string) None
       & info ~doc ~docv:"DIR" [ "server-objs-dir" ])
 
+  let arg_ppx_args =
+    let doc = "PPX command-line arguments." in
+    Arg.(value & pos_right 0 string [] & info ~doc ~docv:"-- PPX_ARGS" [])
+
   let cmd =
     let term =
       Term.(
         const run $ arg_internal_prefix $ arg_subdir $ arg_server_objs_dir
-        $ arg_dir)
+        $ arg_dir $ arg_ppx_args)
     in
     let doc = "Generate dune rules to stdout." in
     let info = Cmd.info "gen-client-modules" ~doc ~docs:s_internal_commands in

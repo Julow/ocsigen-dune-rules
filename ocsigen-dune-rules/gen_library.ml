@@ -12,10 +12,8 @@ let server_library_stanza ~public_name ~name ~libraries ~preprocess =
       field "modes" [ atom "byte"; atom "native" ];
       field "wrapped" [ atom "false" ];
       field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
-      field "preprocess"
-        [ field "pps" (atoms (Gen_utils.server_pps preprocess)) ];
-      field "libraries"
-        (atoms (Gen_utils.server_default_libs @ libraries.Gen_utils.lib_server));
+      field "preprocess" [ field "pps" (atoms preprocess.Gen_utils.pps_server) ];
+      field "libraries" (atoms libraries.Gen_utils.lib_server);
     ]
 
 let client_library_stanza ~public_name ~name ~libraries =
@@ -26,8 +24,7 @@ let client_library_stanza ~public_name ~name ~libraries =
       field "modes" [ atom "byte" ];
       field "wrapped" [ atom "false" ];
       field "library_flags" [ list (atoms [ ":standard"; "-linkall" ]) ];
-      field "libraries"
-        (atoms (Gen_utils.client_default_libs @ libraries.Gen_utils.lib_client));
+      field "libraries" (atoms libraries.Gen_utils.lib_client);
     ]
 
 let client_subdir_stanza ~public_name ~name ~libraries =
@@ -42,8 +39,6 @@ let run public_name wrapped dune_file libraries preprocess name =
   if wrapped then (
     Printf.eprintf "Error: Wrapped libraries are not supported.\n";
     exit 1);
-  Gen_utils.check_duplicated_deps ~server_libs:Gen_utils.server_default_libs
-    ~client_libs:Gen_utils.client_default_libs libraries preprocess;
   Gen_utils.gen_prelude ~dune_file
   @ [
       server_library_stanza ~public_name ~name ~libraries ~preprocess;
