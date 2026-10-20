@@ -3,4 +3,5 @@ module Bytesections : sig
 
   val read_toc : in_channel -> toc
   val seek_dbug_section : toc -> in_channel -> int
+  val seek_crcs_section : toc -> in_channel -> int
 end

@@ -5,4 +5,7 @@ module Bytesections = struct
 
   let seek_dbug_section toc ic =
     Bytesections.seek_section toc ic Bytesections.Name.DBUG
+
+  let seek_crcs_section toc ic =
+    Bytesections.seek_section toc ic Bytesections.Name.CRCS
 end
