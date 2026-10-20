@@ -3,4 +3,5 @@ module Bytesections = struct
 
   let read_toc ic = ignore (Bytesections.read_toc ic)
   let seek_dbug_section () ic = Bytesections.seek_section ic "DBUG"
+  let seek_crcs_section () ic = Bytesections.seek_section ic "CRCS"
 end

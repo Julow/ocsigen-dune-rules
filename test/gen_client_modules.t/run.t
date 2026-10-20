@@ -260,3 +260,10 @@ PPX arguments are added after '--':
   --
       --default-module
       I18n
+
+A module named after its library is the library interface module (compiles to
+[lib.cmo] not [lib__Lib.cmo]):
+
+  $ ocsigen-dune-rules gen-client-modules --internal-prefix a --server-objs-dir ../.a.objs/byte . | grep '\.cmo}'
+      %{dep:../.a.objs/byte/a.cmo}
+      %{dep:../.a.objs/byte/a__B.cmo}
