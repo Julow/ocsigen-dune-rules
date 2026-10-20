@@ -42,13 +42,16 @@ let server_cmo_arg ~internal_prefix ~subdir_name ~server_objs_dir
     let module_base = Filename.basename fname_no_ext in
     let cap_name = String.capitalize_ascii module_base in
     let cmo_from_dune_dir =
-      let prefix =
-        if internal_prefix <> "" then
-          String.lowercase_ascii internal_prefix ^ "__"
-        else if subdir_name <> "" then String.lowercase_ascii subdir_name ^ "__"
+      let lib_name =
+        if internal_prefix <> "" then String.lowercase_ascii internal_prefix
+        else if subdir_name <> "" then String.lowercase_ascii subdir_name
         else ""
       in
-      spf "%s/%s%s.cmo" server_objs_dir prefix cap_name
+      if lib_name <> "" && String.lowercase_ascii module_base = lib_name then
+        spf "%s/%s.cmo" server_objs_dir lib_name
+      else
+        let prefix = if lib_name = "" then "" else lib_name ^ "__" in
+        spf "%s/%s%s.cmo" server_objs_dir prefix cap_name
     in
     let cmo_path =
       if subdir_name <> "" then spf "../%s" cmo_from_dune_dir
